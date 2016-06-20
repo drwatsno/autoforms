@@ -48,6 +48,11 @@ var AutoForm = function (htmlElementNode, options) {
         this.valid = false;
     };
 
+    /**
+     * Method validates single field
+     * TODO: Refactor this. Object definition in other object looks bad
+     * @returns {boolean|*}
+     */
     Field.prototype.validate = function () {
         this.empty = this.node.value === "";
         if (!this.empty ) { // if field is not empty
@@ -116,6 +121,10 @@ var AutoForm = function (htmlElementNode, options) {
     }
 };
 
+/**
+ * Checks all fields of form. If at least one field is not valid (validate() method returns false) returns false
+ * @returns {boolean}
+ */
 AutoForm.prototype.validate = function () {
     this.valid = true;
     for (var i=0; i< this.fields.length; i++) {
@@ -129,6 +138,10 @@ AutoForm.prototype.validate = function () {
     return this.valid;
 };
 
+/**
+ * TODO: refactor this function
+ * This method inits all events of form including field events and submit hover events
+ */
 AutoForm.prototype.initEvents = function () {
     var _this = this;
 
@@ -139,7 +152,7 @@ AutoForm.prototype.initEvents = function () {
             }
             if (_this.options.DeactivateSubmit) {
                 _this.submit.parentElement.classList.remove("autoform-submit-invalid");
-                _this.submit.attributes.removeNamedItem("disabled");
+                _this.submit.removeAttribute("disabled");
             }
         }
         else {
@@ -148,7 +161,7 @@ AutoForm.prototype.initEvents = function () {
             }
             if (_this.options.DeactivateSubmit) {
                 _this.submit.parentElement.classList.add("autoform-submit-invalid");
-                _this.submit.attributes.disabled = "disabled";
+                _this.submit.setAttribute("disabled","disabled");
             }
         }
     }
@@ -169,7 +182,10 @@ AutoForm.prototype.initEvents = function () {
             });
             currentField.node.addEventListener("click", function () {
                 validateCheckEventsRun();
-                document.querySelector(_this.options.ErrorMsgContainer).innerHTML = "";
+                if (document.querySelector(_this.options.ErrorMsgContainer)) {
+                    document.querySelector(_this.options.ErrorMsgContainer).innerHTML = "";
+                }
+
                 this.classList.remove("autoform-invalid");
             });
             currentField.node.addEventListener("keypress", function (evt) {
@@ -213,14 +229,14 @@ AutoForm.prototype.initEvents = function () {
                             keyErrWrap = document.querySelector("#" + currentField.data.keyerrwrapid);
                         } else {
                             keyErrWrap = document.querySelector("#autoforms_errors");
-                            if (keyErrWrap.length < 1) {
+                            if (keyErrWrap) {
                                 document.querySelector(_this.options.ErrorMsgContainer).innerHTML = '<div id="autoforms_errors" style="opacity: 0"></div>';
                                 keyErrWrap = document.querySelector("#autoforms_errors");
                             }
                         }
 
                         keyErrWrap.style.opacity = 1;
-                        if (keyErrWrap.querySelector(".keyerr").length < 1) {
+                        if (keyErrWrap.querySelector(".keyerr")) {
                             keyErrWrap.innerHTML = keyErrWrap.innerHTML + '<span class="keyerr" style="opacity: 1">' + invalidKeyErrorMsg + '</span>';
                             setTimeout(function () {
                                 keyErrWrap.querySelector(".keyerr").style.opacity = 0;
@@ -232,8 +248,11 @@ AutoForm.prototype.initEvents = function () {
                     return false;
                 } else {
                     if (_this.options.InvalidKeyErrorMsg) {
-                        document.querySelector("#autoforms_errors .keyerr").style.opacity = 0;
-                        document.querySelector("#autoforms_errors .keyerr").remove();
+                        if (document.querySelector("#autoforms_errors .keyerr")) {
+                            document.querySelector("#autoforms_errors .keyerr").style.opacity = 0;
+                            document.querySelector("#autoforms_errors .keyerr").remove();
+                        }
+
                     }
                 }
             });
@@ -241,14 +260,117 @@ AutoForm.prototype.initEvents = function () {
             if (_this.options.PositiveValidation) {
                 currentField.node.addEventListener("focusout", function(){
                     if (currentField.validate()) {
-                        currentField.classList.add("valid");
+                        currentField.node.classList.add("valid");
                     }
                 });
                 currentField.node.addEventListener("focusin", function(){
-                    currentField.classList.remove("valid");
+                    currentField.node.classList.remove("valid");
                 });
             }
         })();
+    }
+
+    _this.submit.parentNode.addEventListener("mouseenter", function () {
+        _this.highlightInvalidFields("on");
+        if (_this.valid) {
+        }
+        else {
+            if (_this.options.ShowErrorMsg) {
+                if (document.getElementById("autoforms_errors").length < 1) {
+                    document.getElementById(_this.options.ErrorMsgContainer).innerHTML = '<div id="autoforms_errors" style="opacity: 0"></div>';
+                }
+                if (_this.options.EnableAnimations) {
+                    document.getElementById("autoforms_errors").innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
+                }
+                else {
+                    document.getElementById("autoforms_errors").innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
+                }
+            }
+        }
+    });
+    _this.submit.parentNode.addEventListener("mouseleave", function () {
+        _this.highlightInvalidFields("off");
+        if (_this.valid) {
+        }
+        if (_this.options.ShowErrorMsg) {
+            if (_this.options.EnableAnimations) {
+                document.getElementById("autoforms_errors").style.opacity = 0;
+            }
+            else {
+                document.getElementById("autoforms_errors").innerHTML = "";
+            }
+
+        }
+    });
+
+
+    if (_this.valid) {
+        if (_this.options.FormInvalidClass) {
+            _this.node.classList.remove("autoform-form-invalid");
+        }
+        if (_this.options.DeactivateSubmit) {
+            _this.submit.parentNode.classList.remove("autoform-submit-invalid");
+            if (_this.submit.attributes.disabled) {
+                _this.submit.removeAttribute("disabled");
+            }
+
+        }
+    }
+    else {
+        if (_this.options.FormInvalidClass) {
+            _this.node.classList.remove("autoform-form-invalid");
+        }
+        if (_this.options.DeactivateSubmit) {
+            _this.submit.parentNode.classList.add("autoform-submit-invalid");
+            _this.submit.setAttribute("disabled","disabled");
+            console.log("d");
+        }
+    }
+
+    if (_this.options.CancelErrorMsg) {
+        document.querySelector(_this.options.CancelButton).addEventListener("mouseenter", function () {
+            _this.errorString = "Будут отменены все изменения!";
+            if (document.getElementById("autoforms_errors").length < 1) {
+                document.getElementById(_this.options.ErrorMsgContainer).innerHTML = '<div id="autoforms_errors" style="opacity: 0"></div>';
+            }
+            if (_this.options.EnableAnimations) {
+                document.getElementById("autoforms_errors").innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
+            }
+            else {
+                document.getElementById("autoforms_errors").innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
+            }
+        });
+        document.querySelector(_this.options.CancelButton).addEventListener("mouseleave", function () {
+            _this. errorString = "";
+            if (_this.options.EnableAnimations) {
+                document.getElementById("autoforms_errors").style.opacity = 0;
+            }
+            else {
+                document.getElementById("autoforms_errors").innerHTML = "";
+            }
+        });
+    }
+};
+
+/**
+ * This method just highlighting invalid fields.
+ * @param opts (off|on) off - removes highlight class from fields
+ */
+AutoForm.prototype.highlightInvalidFields = function(opts) {
+    var _this = this;
+    for (var i=0; i< _this.fields.length; i++) {
+        if (opts !== "off") {
+            if (_this.fields[i].valid) {
+                _this.fields[i].node.classList.remove("autoform-invalid");
+            }
+            else {
+                _this.fields[i].node.classList.add("autoform-invalid");
+            }
+        }
+
+        if (opts === "off") {
+            _this.fields[i].node.classList.remove("autoform-invalid");
+        }
     }
 };
 
