@@ -1,3 +1,7 @@
 window.onload = function () {
-  autoform.init(document.getElementsByClassName("au-block_form")[0]);
+  var forms = document.getElementsByClassName("au-block_form");
+
+  for (var i=0;i<forms.length;i++) {
+    autoform.init(forms[i]);
+  }
 };

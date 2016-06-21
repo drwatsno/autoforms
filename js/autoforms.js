@@ -115,7 +115,7 @@ var AutoForm = function (htmlElementNode, options) {
     this.errorString = "";
     this.submit = this.node.querySelector('input[type="submit"]').length < 1?document.querySelector('input[form="' + this.node.id + '"]'):this.node.querySelector('input[type="submit"]');
     this.fields = [];
-    var fields = this.node.querySelectorAll('input[type="text"], input[type="password"], input[type="checkbox"], input[type="radio"], select, textarea input[type="text"][form="' + this.node.id + '"], select[form="' + this.node.id + '"], input[type="radio"][form="' + this.node.id + '"]');
+    var fields = this.node.querySelectorAll('input[type="text"], input[type="password"], input[type="checkbox"], input[type="radio"], select, textarea, input[type="text"][form="' + this.node.id + '"], select[form="' + this.node.id + '"], input[type="radio"][form="' + this.node.id + '"]');
     for (var i=0; i< fields.length; i++) {
         this.fields.push(new Field(fields[i]));
     }

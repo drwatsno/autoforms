@@ -1,13 +1,67 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto:400,300,400italic,700);
 * {
   font-size: 1em;
+  line-height: 1.3em;
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
 }
 
 .au-block_form {
   .hover-layer {
-    padding: 20px;
+    padding: 1em;
+    margin-left: -1em;
   }
   .autoform-invalid {
     border-color: #FF0000;
     background: rgba(255,0,0,0.2);
+  }
+}
+.au-root_header {
+  height: 3em;
+  background: url("logo.svg") no-repeat 50% 50%;
+  margin: 1em;
+}
+
+.au-root_wrap {
+  margin: 0 auto;
+  max-width: 40em;
+}
+
+h1 {
+  font-size: 2em;
+  margin-bottom: 1em;
+}
+
+.au-block_section {
+  margin: 2em;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5em;
+}
+
+input[type="text"],textarea {
+  width: 100%;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  border: 0.05em solid #888;
+  box-shadow: inset .1em .1em .1em 0em rgba(0,0,0,0.2);
+  margin-bottom: 1em;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+input[type="submit"] {
+  padding: 0.2em 0.5em;
+  background: #4fb400;
+  border: none;
+  outline: none;
+  font-size: 1.3em;
+  color: #FFF;
+  border-radius: 0.2em;
+  &[disabled] {
+    background: #cccccc;
   }
 }
