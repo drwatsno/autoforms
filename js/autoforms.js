@@ -38,66 +38,74 @@
 
 "use strict";
 
-var AutoForm = function (htmlElementNode, options) {
-    var thisAutoform = this;
+const AUTOFORM_FIELD_INVALID_CLASS = "autoform-invalid";
+const AUTOFORM_FORM_INVALID_CLASS = "autoform-form-invalid";
+const AUTOFORM_SUBMIT_INVALID_CLASS = "autoform-submit-invalid";
+const AUTOFORM_KEYERROR_CLASS = "keyerr";
+const AUTOFORM_KEYERROR_WRAP_CLASS = "autoforms_errors";
 
-    var Field = function (node) {
-        this.node = node;
-        this.data = node.dataset;
-        this.empty = false;
-        this.valid = false;
-    };
+var Field = function (node, autoForm) {
+    var self = this;
+    self._node = node;
+    self._data = node.dataset;
+    self.empty = false;
+    self.valid = false;
+    self._autoForm = autoForm;
+};
 
-    /**
-     * Method validates single field
-     * TODO: Refactor this. Object definition in other object looks bad
-     * @returns {boolean|*}
-     */
-    Field.prototype.validate = function () {
-        this.empty = this.node.value === "";
-        if (!this.empty ) { // if field is not empty
-            switch (this.data.fieldType) { // begin validation
-                case "text-all": this.valid = true; break; // any text
-                case "text-url": this.valid = true; break; // any text
-                case "date": this.valid = true; break;     // TODO: validate date
-                case "phone": this.valid = true; break;    // TODO: validate phone
-                case "maskphone": this.valid = this.node.value.indexOf("_")<0; break;
-                case "radio": this.valid = thisAutoform.querySelector("input[name='"+this.node.getAttribute("name")+"']:checked").value != undefined||(!this.data.required); break;
-                case "email":  // in e-mail we search for '@' and '.' symbols
-                    this.valid = ((String(this.node.value).indexOf("@") > -1) && (String(this.node.value).indexOf(".") > -1));
-                    if (!this.valid) { thisAutoform.errorString = "Неправильный email"; }
-                    break;
-                case "checkbox":
-                    this.valid = true; break;
-                case "number": this.valid = true; break; // TODO: validate numbers
-            }
-            if (this.data.crossValid) {
-                if (document.querySelector("#"+this.data.crossValid).value !== "") this.valid = true;
-            }
-            // returning this.valid property after validation
-            return this.valid;
+/**
+ * Method validates single field
+ * @returns {boolean|*}
+ */
+Field.prototype.validate = function () {
+    var self = this;
+    self.empty = self._node.value === "";
+    if (!self.empty ) { // if field is not empty
+        switch (self._data.fieldType) { // begin validation
+            case "text-all": self.valid = true; break; // any text
+            case "text-url": self.valid = true; break; // any text
+            case "date": self.valid = true; break;     // TODO: validate date
+            case "phone": self.valid = true; break;    // TODO: validate phone
+            case "maskphone": self.valid = self._node.value.indexOf("_")<0; break;
+            case "radio": self.valid = self._autoForm.querySelector("input[name='"+self._node.getAttribute("name")+"']:checked").value != undefined||(!self._data.required); break;
+            case "email":  // in e-mail we search for '@' and '.' symbols
+                self.valid = ((String(self._node.value).indexOf("@") > -1) && (String(self._node.value).indexOf(".") > -1));
+                if (!self.valid) { self.autoForm.errorString = "Неправильный email"; }
+                break;
+            case "checkbox":
+                self.valid = true; break;
+            case "number": self.valid = true; break; // TODO: validate numbers
+        }
+        if (self._data.crossValid) {
+            if (document.querySelector("#"+self._data.crossValid).value !== "") self.valid = true;
+        }
+        // returning this.valid property after validation
+        return self.valid;
+    }
+    else {
+        // field is empty
+        if ((self._data.required !== true)&&(self._data.required !== undefined)) {
+            // but not required
+            self.valid = true;
+            // skipping
+            return self.valid;
         }
         else {
-            // field is empty
-            if ((this.data.required !== true)&&(this.data.required !== undefined)) {
-                // but not required
-                this.valid = true;
-                // skipping
-                return this.valid;
+            //  but if required
+            self._autoForm.errorString = "Незаполнены обязательные поля";
+            // marking as not valid and changing errorString
+            self.valid = false;
+            if (self._data.crossValid) {
+                if (document.querySelector("#"+self._data.crossValid).value !== "") self.valid = true;
             }
-            else {
-                //   console.log(this);
-                //  but if required
-                thisAutoform.errorString = "Незаполнены обязательные поля";
-                // marking as not valid and changing errorString
-                this.valid = false;
-                if (this.data.crossValid) {
-                    if (document.querySelector("#"+this.data.crossValid).value !== "") this.valid = true;
-                }
-                return this.valid;
-            }
+            return self.valid;
         }
-    };
+    }
+};
+
+var AutoForm = function (htmlElementNode, options) {
+    var thisAutoForm = this;
+    
     this.options = {
         ShowErrorMsg       : options.ShowErrorMsg||false,
         ErrorMsgContainer  : options.ErrorMsgContainer||".autoforms-errors",
@@ -111,13 +119,13 @@ var AutoForm = function (htmlElementNode, options) {
         PositiveValidation : options.PositiveValidation||true
     };
     this.valid = false;
-    this.node = htmlElementNode;
+    this._node = htmlElementNode;
     this.errorString = "";
-    this.submit = this.node.querySelector('input[type="submit"]').length < 1?document.querySelector('input[form="' + this.node.id + '"]'):this.node.querySelector('input[type="submit"]');
+    this.submit = this._node.querySelector('input[type="submit"]').length < 1?document.querySelector('input[form="' + this._node.id + '"]'):this._node.querySelector('input[type="submit"]');
     this.fields = [];
-    var fields = this.node.querySelectorAll('input[type="text"], input[type="password"], input[type="checkbox"], input[type="radio"], select, textarea, input[type="text"][form="' + this.node.id + '"], select[form="' + this.node.id + '"], input[type="radio"][form="' + this.node.id + '"]');
+    var fields = this._node.querySelectorAll('input[type="text"], input[type="password"], input[type="checkbox"], input[type="radio"], select, textarea, input[type="text"][form="' + this._node.id + '"], select[form="' + this._node.id + '"], input[type="radio"][form="' + this._node.id + '"]');
     for (var i=0; i< fields.length; i++) {
-        this.fields.push(new Field(fields[i]));
+        this.fields.push(new Field(fields[i],thisAutoForm));
     }
 };
 
@@ -126,16 +134,14 @@ var AutoForm = function (htmlElementNode, options) {
  * @returns {boolean}
  */
 AutoForm.prototype.validate = function () {
-    this.valid = true;
-    for (var i=0; i< this.fields.length; i++) {
-
-        if (this.fields[i].validate()) {
+    var self = this;
+    self.valid = true;
+    self.fields.forEach(function (field) {
+        if (!field.validate()) {
+            self.valid = false;
         }
-        else {
-            this.valid = false;
-        }
-    }
-    return this.valid;
+    });
+    return self.valid;
 };
 
 /**
@@ -148,19 +154,19 @@ AutoForm.prototype.initEvents = function () {
     function validateCheckEventsRun() {
         if (_this.validate()) {
             if (_this.options.FormInvalidClass) {
-                _this.node.classList.remove("autoform-form-invalid");
+                _this._node.classList.remove(AUTOFORM_FORM_INVALID_CLASS);
             }
             if (_this.options.DeactivateSubmit) {
-                _this.submit.parentElement.classList.remove("autoform-submit-invalid");
+                _this.submit.parentElement.classList.remove(AUTOFORM_SUBMIT_INVALID_CLASS);
                 _this.submit.removeAttribute("disabled");
             }
         }
         else {
             if (_this.options.FormInvalidClass) {
-                _this.node.classList.add("autoform-form-invalid");
+                _this._node.classList.add(AUTOFORM_FORM_INVALID_CLASS);
             }
             if (_this.options.DeactivateSubmit) {
-                _this.submit.parentElement.classList.add("autoform-submit-invalid");
+                _this.submit.parentElement.classList.add(AUTOFORM_SUBMIT_INVALID_CLASS);
                 _this.submit.setAttribute("disabled","disabled");
             }
         }
@@ -174,21 +180,21 @@ AutoForm.prototype.initEvents = function () {
                 keyErrWrap,
                 additionalValidation = true;
 
-            currentField.node.addEventListener("keyup", function () {
+            currentField._node.addEventListener("keyup", function () {
                 validateCheckEventsRun();
             });
-            currentField.node.addEventListener("change", function () {
+            currentField._node.addEventListener("change", function () {
                 validateCheckEventsRun();
             });
-            currentField.node.addEventListener("click", function () {
+            currentField._node.addEventListener("click", function () {
                 validateCheckEventsRun();
                 if (document.querySelector(_this.options.ErrorMsgContainer)) {
-                    document.querySelector(_this.options.ErrorMsgContainer).innerHTML = "";
+                    document.querySelectorAll(_this.options.ErrorMsgContainer).innerHTML = "";
                 }
 
-                this.classList.remove("autoform-invalid");
+                this.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
             });
-            currentField.node.addEventListener("keypress", function (evt) {
+            currentField._node.addEventListener("keypress", function (evt) {
                 var invalidKeyErrorMsg = "Недопустимый символ";
                 if (evt.keyCode === 13) {
                     if ((_this.submit.attributes.disabled !== 'disabled')&&(this.tagName!=="TEXTAREA")) {
@@ -196,14 +202,14 @@ AutoForm.prototype.initEvents = function () {
                     }
                 }
 
-                switch (currentField.data.fieldType) {
+                switch (currentField._data.fieldType) {
                     case "text-all": noLimit = true; break;
                     case "checkbox": noLimit = true; break;
                     case "text-url": checkString = "13 49 50 51 52 53 54 55 56 57 48 45 61 95 43 113 119 101 114 116 121 117 105 111 112 91 93 97 115 100 102 103 104 106 107 108 59 39 122 120 99 118 98 110 109 44 46 47 81 87 69 82 84 89 85 73 79 80 123 125 124 65 83 68 70 71 72 74 75 76 58 90 88 67 86 66 78 77 60 62 63";
                         invalidKeyErrorMsg = "Используйте только латинницу";
                         break;
                     case "date":     checkString = "13 47 46 49 50 51 52 53 54 55 56 57 48";
-                        additionalValidation = (currentField.node.value.length < 10);
+                        additionalValidation = (currentField._node.value.length < 10);
                         invalidKeyErrorMsg = "Используйте только цифры и разделители";
                         break;
                     case "email":   checkString = "13 48 49 50 51 52 53 54 55 56 57 46 64 113 119 101 114 116 121 117 105 111 112 97 115 100 102 103 104 106 107 108 122 120 99 118 98 110 109 45 81 87 69 82 84 89 85 73 79 80 65 83 68 70 71 72 74 75 76 90 88 67 86 66 78 77";
@@ -218,29 +224,26 @@ AutoForm.prototype.initEvents = function () {
                     case "maskphone":   checkString = "40 41 43 45 13 48 49 50 51 52 53 54 55 56 57 40 41 45";
                         invalidKeyErrorMsg = "Используйте только цифры";
                         break;
-                    case "hunter-certificate":
-                        noLimit = true;
-                        break;
 
                 }
                 if (additionalValidation && (!noLimit) && (checkString.search(evt.which) === -1)) {
                     if (_this.options.InvalidKeyErrorMsg) {
-                        if (currentField.data.keyerrwrapid) {
-                            keyErrWrap = document.querySelector("#" + currentField.data.keyerrwrapid);
+                        if (currentField._data.keyerrwrapid) {
+                            keyErrWrap = document.querySelector("." + currentField._data.keyerrwrapid);
                         } else {
-                            keyErrWrap = document.querySelector("#autoforms_errors");
+                            keyErrWrap = document.querySelector("."+AUTOFORM_KEYERROR_WRAP_CLASS);
                             if (keyErrWrap) {
-                                document.querySelector(_this.options.ErrorMsgContainer).innerHTML = '<div id="autoforms_errors" style="opacity: 0"></div>';
+                                document.querySelector(_this.options.ErrorMsgContainer).innerHTML = '<div class="'+AUTOFORM_KEYERROR_WRAP_CLASS+'" style="opacity: 0"></div>';
                                 keyErrWrap = document.querySelector("#autoforms_errors");
                             }
                         }
 
                         keyErrWrap.style.opacity = 1;
-                        if (keyErrWrap.querySelector(".keyerr")) {
-                            keyErrWrap.innerHTML = keyErrWrap.innerHTML + '<span class="keyerr" style="opacity: 1">' + invalidKeyErrorMsg + '</span>';
+                        if (keyErrWrap.querySelector("."+AUTOFORM_KEYERROR_CLASS)) {
+                            keyErrWrap.innerHTML = keyErrWrap.innerHTML + '<span class="'+AUTOFORM_KEYERROR_CLASS+'" style="opacity: 1">' + invalidKeyErrorMsg + '</span>';
                             setTimeout(function () {
-                                keyErrWrap.querySelector(".keyerr").style.opacity = 0;
-                                keyErrWrap.querySelector(".keyerr").remove();
+                                keyErrWrap.querySelectorAll("."+AUTOFORM_KEYERROR_CLASS).style.opacity = 0;
+                                keyErrWrap.querySelectorAll("."+AUTOFORM_KEYERROR_CLASS).remove();
                             }, 900);
                         }
 
@@ -248,9 +251,9 @@ AutoForm.prototype.initEvents = function () {
                     return false;
                 } else {
                     if (_this.options.InvalidKeyErrorMsg) {
-                        if (document.querySelector("#autoforms_errors .keyerr")) {
-                            document.querySelector("#autoforms_errors .keyerr").style.opacity = 0;
-                            document.querySelector("#autoforms_errors .keyerr").remove();
+                        if (document.querySelectorAll("."+AUTOFORM_KEYERROR_WRAP_CLASS+" ."+AUTOFORM_KEYERROR_CLASS)) {
+                            document.querySelectorAll("."+AUTOFORM_KEYERROR_WRAP_CLASS+" ."+AUTOFORM_KEYERROR_CLASS).style.opacity = 0;
+                            document.querySelectorAll("."+AUTOFORM_KEYERROR_WRAP_CLASS+" ."+AUTOFORM_KEYERROR_CLASS).remove();
                         }
 
                     }
@@ -258,13 +261,13 @@ AutoForm.prototype.initEvents = function () {
             });
 
             if (_this.options.PositiveValidation) {
-                currentField.node.addEventListener("focusout", function(){
+                currentField._node.addEventListener("focusout", function(){
                     if (currentField.validate()) {
-                        currentField.node.classList.add("valid");
+                        currentField._node.classList.add("valid");
                     }
                 });
-                currentField.node.addEventListener("focusin", function(){
-                    currentField.node.classList.remove("valid");
+                currentField._node.addEventListener("focusin", function(){
+                    currentField._node.classList.remove("valid");
                 });
             }
         })();
@@ -276,14 +279,14 @@ AutoForm.prototype.initEvents = function () {
         }
         else {
             if (_this.options.ShowErrorMsg) {
-                if (document.getElementById("autoforms_errors").length < 1) {
-                    document.getElementById(_this.options.ErrorMsgContainer).innerHTML = '<div id="autoforms_errors" style="opacity: 0"></div>';
+                if (document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).length < 1) {
+                    document.getElementById(_this.options.ErrorMsgContainer).innerHTML = '<div class="'+AUTOFORM_KEYERROR_WRAP_CLASS+'" style="opacity: 0"></div>';
                 }
                 if (_this.options.EnableAnimations) {
-                    document.getElementById("autoforms_errors").innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
+                    document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
                 }
                 else {
-                    document.getElementById("autoforms_errors").innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
+                    document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
                 }
             }
         }
@@ -294,10 +297,10 @@ AutoForm.prototype.initEvents = function () {
         }
         if (_this.options.ShowErrorMsg) {
             if (_this.options.EnableAnimations) {
-                document.getElementById("autoforms_errors").style.opacity = 0;
+                document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).style.opacity = 0;
             }
             else {
-                document.getElementById("autoforms_errors").innerHTML = "";
+                document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "";
             }
 
         }
@@ -306,10 +309,10 @@ AutoForm.prototype.initEvents = function () {
 
     if (_this.valid) {
         if (_this.options.FormInvalidClass) {
-            _this.node.classList.remove("autoform-form-invalid");
+            _this._node.classList.remove(AUTOFORM_FORM_INVALID_CLASS);
         }
         if (_this.options.DeactivateSubmit) {
-            _this.submit.parentNode.classList.remove("autoform-submit-invalid");
+            _this.submit.parentNode.classList.remove(AUTOFORM_SUBMIT_INVALID_CLASS);
             if (_this.submit.attributes.disabled) {
                 _this.submit.removeAttribute("disabled");
             }
@@ -318,35 +321,34 @@ AutoForm.prototype.initEvents = function () {
     }
     else {
         if (_this.options.FormInvalidClass) {
-            _this.node.classList.remove("autoform-form-invalid");
+            _this._node.classList.remove(AUTOFORM_FORM_INVALID_CLASS);
         }
         if (_this.options.DeactivateSubmit) {
-            _this.submit.parentNode.classList.add("autoform-submit-invalid");
+            _this.submit.parentNode.classList.add(AUTOFORM_SUBMIT_INVALID_CLASS);
             _this.submit.setAttribute("disabled","disabled");
-            console.log("d");
         }
     }
 
     if (_this.options.CancelErrorMsg) {
         document.querySelector(_this.options.CancelButton).addEventListener("mouseenter", function () {
             _this.errorString = "Будут отменены все изменения!";
-            if (document.getElementById("autoforms_errors").length < 1) {
-                document.getElementById(_this.options.ErrorMsgContainer).innerHTML = '<div id="autoforms_errors" style="opacity: 0"></div>';
+            if (document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).length < 1) {
+                document.getElementById(_this.options.ErrorMsgContainer).innerHTML = '<div id="'+AUTOFORM_KEYERROR_WRAP_CLASS+'" style="opacity: 0"></div>';
             }
             if (_this.options.EnableAnimations) {
-                document.getElementById("autoforms_errors").innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
+                document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
             }
             else {
-                document.getElementById("autoforms_errors").innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
+                document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
             }
         });
         document.querySelector(_this.options.CancelButton).addEventListener("mouseleave", function () {
             _this. errorString = "";
             if (_this.options.EnableAnimations) {
-                document.getElementById("autoforms_errors").style.opacity = 0;
+                document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).style.opacity = 0;
             }
             else {
-                document.getElementById("autoforms_errors").innerHTML = "";
+                document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "";
             }
         });
     }
@@ -361,15 +363,15 @@ AutoForm.prototype.highlightInvalidFields = function(opts) {
     for (var i=0; i< _this.fields.length; i++) {
         if (opts !== "off") {
             if (_this.fields[i].valid) {
-                _this.fields[i].node.classList.remove("autoform-invalid");
+                _this.fields[i]._node.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
             }
             else {
-                _this.fields[i].node.classList.add("autoform-invalid");
+                _this.fields[i]._node.classList.add(AUTOFORM_FIELD_INVALID_CLASS);
             }
         }
 
         if (opts === "off") {
-            _this.fields[i].node.classList.remove("autoform-invalid");
+            _this.fields[i]._node.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
         }
     }
 };
