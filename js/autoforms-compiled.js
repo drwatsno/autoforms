@@ -49,6 +49,12 @@ var AUTOFORM_KEYERROR_CLASS = "keyerr";
 var AUTOFORM_KEYERROR_WRAP_CLASS = "autoforms_errors";
 
 var Field = function () {
+    /**
+     * Field class describes single field.
+     * @param node
+     * @param autoForm
+     */
+
     function Field(node, autoForm) {
         _classCallCheck(this, Field);
 
@@ -65,10 +71,10 @@ var Field = function () {
             additionalValidation = true;
 
         currentField._node.addEventListener("keyup", function () {
-            currentField._autoForm.onValidateActionsRun();
+            return currentField._autoForm.onValidateActionsRun();
         });
         currentField._node.addEventListener("change", function () {
-            currentField._autoForm.onValidateActionsRun();
+            return currentField._autoForm.onValidateActionsRun();
         });
         currentField._node.addEventListener("click", function () {
             currentField._autoForm.onValidateActionsRun();
@@ -79,11 +85,9 @@ var Field = function () {
             this.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
         });
         currentField._node.addEventListener("keypress", function (evt) {
-            var invalidKeyErrorMsg = "Недопустимый символ";
-            if (evt.keyCode === 13) {
-                if (currentField._autoForm.submit.attributes.disabled !== 'disabled' && this.tagName !== "TEXTAREA") {
-                    currentField._autoForm.submit.click();
-                }
+            var invalidKeyErrorMsg = "Unvalid char";
+            if (evt.keyCode === 13 && currentField._autoForm.submit.attributes.disabled !== 'disabled' && this.tagName !== "TEXTAREA") {
+                currentField._autoForm.submit.click();
             }
 
             switch (currentField._data.fieldType) {
@@ -93,28 +97,28 @@ var Field = function () {
                     noLimit = true;break;
                 case "text-url":
                     checkString = "13 49 50 51 52 53 54 55 56 57 48 45 61 95 43 113 119 101 114 116 121 117 105 111 112 91 93 97 115 100 102 103 104 106 107 108 59 39 122 120 99 118 98 110 109 44 46 47 81 87 69 82 84 89 85 73 79 80 123 125 124 65 83 68 70 71 72 74 75 76 58 90 88 67 86 66 78 77 60 62 63";
-                    invalidKeyErrorMsg = "Используйте только латинницу";
+                    invalidKeyErrorMsg = "Type only latin";
                     break;
                 case "date":
                     checkString = "13 47 46 49 50 51 52 53 54 55 56 57 48";
                     additionalValidation = currentField._node.value.length < 10;
-                    invalidKeyErrorMsg = "Используйте только цифры и разделители";
+                    invalidKeyErrorMsg = "Type only numbers and delimiters";
                     break;
                 case "email":
                     checkString = "13 48 49 50 51 52 53 54 55 56 57 46 64 113 119 101 114 116 121 117 105 111 112 97 115 100 102 103 104 106 107 108 122 120 99 118 98 110 109 45 81 87 69 82 84 89 85 73 79 80 65 83 68 70 71 72 74 75 76 90 88 67 86 66 78 77";
-                    invalidKeyErrorMsg = "Используйте только латинницу";
+                    invalidKeyErrorMsg = "Type only latin";
                     break;
                 case "phone":
                     checkString = "40 41 43 45 13 48 49 50 51 52 53 54 55 56 57 40 41 45";
-                    invalidKeyErrorMsg = "Используйте только цифры";
+                    invalidKeyErrorMsg = "Type only numbers";
                     break;
                 case "number":
                     checkString = "48 49 50 51 52 53 54 55 56 57";
-                    invalidKeyErrorMsg = "Используйте только цифры";
+                    invalidKeyErrorMsg = "Type only numbers";
                     break;
                 case "maskphone":
                     checkString = "40 41 43 45 13 48 49 50 51 52 53 54 55 56 57 40 41 45";
-                    invalidKeyErrorMsg = "Используйте только цифры";
+                    invalidKeyErrorMsg = "Type only numbers";
                     break;
 
             }
@@ -126,7 +130,7 @@ var Field = function () {
                         keyErrWrap = document.querySelector("." + AUTOFORM_KEYERROR_WRAP_CLASS);
                         if (keyErrWrap) {
                             document.querySelector(currentField._autoForm.options.ErrorMsgContainer).innerHTML = '<div class="' + AUTOFORM_KEYERROR_WRAP_CLASS + '" style="opacity: 0"></div>';
-                            keyErrWrap = document.querySelector("#autoforms_errors");
+                            keyErrWrap = document.querySelector("." + AUTOFORM_KEYERROR_WRAP_CLASS);
                         }
                     }
 
@@ -214,7 +218,7 @@ var Field = function () {
                     return self.valid;
                 } else {
                     //  but if required
-                    self._autoForm.errorString = "Незаполнены обязательные поля";
+                    self._autoForm.errorString = "Fill up required fields";
                     // marking as not valid and changing errorString
                     self.valid = false;
                     if (self._data.crossValid) {
@@ -256,12 +260,34 @@ var AutoForm = function () {
         };
         this.valid = false;
         this._node = htmlElementNode;
-        this.errorString = "";
+        // this.errorString = "";
         this.submit = this._node.querySelector('input[type="submit"]').length < 1 ? document.querySelector('input[form="' + this._node.id + '"]') : this._node.querySelector('input[type="submit"]');
         this.fields = [];
         var fields = this._node.querySelectorAll('input[type="text"], input[type="password"], input[type="checkbox"], input[type="radio"], select, textarea, input[type="text"][form="' + this._node.id + '"], select[form="' + this._node.id + '"], input[type="radio"][form="' + this._node.id + '"]');
-        for (var i = 0; i < fields.length; i++) {
-            this.fields.push(new Field(fields[i], thisAutoForm));
+
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+            for (var _iterator = fields[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var field = _step.value;
+
+                this.fields.push(new Field(field, thisAutoForm));
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                    _iterator.return();
+                }
+            } finally {
+                if (_didIteratorError) {
+                    throw _iteratorError;
+                }
+            }
         }
     }
 
@@ -276,11 +302,33 @@ var AutoForm = function () {
         value: function validate() {
             var self = this;
             self.valid = true;
-            self.fields.forEach(function (field) {
-                if (!field.validate()) {
-                    self.valid = false;
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = self.fields[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var field = _step2.value;
+
+                    if (!field.validate()) {
+                        self.valid = false;
+                    }
                 }
-            });
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+
             return self.valid;
         }
     }, {
@@ -399,17 +447,38 @@ var AutoForm = function () {
         key: "highlightInvalidFields",
         value: function highlightInvalidFields(opts) {
             var _this = this;
-            for (var i = 0; i < _this.fields.length; i++) {
-                if (opts !== "off") {
-                    if (_this.fields[i].valid) {
-                        _this.fields[i]._node.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
-                    } else {
-                        _this.fields[i]._node.classList.add(AUTOFORM_FIELD_INVALID_CLASS);
+            var _iteratorNormalCompletion3 = true;
+            var _didIteratorError3 = false;
+            var _iteratorError3 = undefined;
+
+            try {
+                for (var _iterator3 = _this.fields[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                    var field = _step3.value;
+
+                    if (opts !== "off") {
+                        if (field.valid) {
+                            field._node.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
+                        } else {
+                            field._node.classList.add(AUTOFORM_FIELD_INVALID_CLASS);
+                        }
+                    }
+
+                    if (opts === "off") {
+                        field._node.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
                     }
                 }
-
-                if (opts === "off") {
-                    _this.fields[i]._node.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
+            } catch (err) {
+                _didIteratorError3 = true;
+                _iteratorError3 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                        _iterator3.return();
+                    }
+                } finally {
+                    if (_didIteratorError3) {
+                        throw _iteratorError3;
+                    }
                 }
             }
         }
