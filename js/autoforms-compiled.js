@@ -90,11 +90,11 @@ var Field = function () {
                 currentField._autoForm.submit.click();
             }
 
-            if (currentField._autoForm.options.Validators[0][currentField._data.fieldType].keypressValidatorFunction) {
-                additionalValidation = currentField._autoForm.options.Validators[0][currentField._data.fieldType].keypressValidatorFunction(currentField);
+            if (currentField._autoForm.options.Validators[currentField._data.fieldType].keypressValidatorFunction) {
+                additionalValidation = currentField._autoForm.options.Validators[currentField._data.fieldType].keypressValidatorFunction(currentField);
             }
-            if (currentField._autoForm.options.Validators[0][currentField._data.fieldType].keys) {
-                checkString = currentField._autoForm.options.Validators[0][currentField._data.fieldType].keys;
+            if (currentField._autoForm.options.Validators[currentField._data.fieldType].keys) {
+                checkString = currentField._autoForm.options.Validators[currentField._data.fieldType].keys;
             } else {
                 noLimit = true;
             }
@@ -157,9 +157,9 @@ var Field = function () {
             self.empty = self._node.value === "";
             if (!self.empty) {
                 // if field is not empty
-                if (self._autoForm.options.Validators[0][self._data.fieldType]) {
-                    if (self._autoForm.options.Validators[0][self._data.fieldType].validatorFunction) {
-                        self.valid = self._autoForm.options.Validators[0][self._data.fieldType].validatorFunction(self);
+                if (self._autoForm.options.Validators[self._data.fieldType]) {
+                    if (self._autoForm.options.Validators[self._data.fieldType].validatorFunction) {
+                        self.valid = self._autoForm.options.Validators[self._data.fieldType].validatorFunction(self);
                     } else {
                         self.valid = true;
                     }
@@ -209,7 +209,7 @@ var AutoForm = function () {
         var thisAutoForm = this;
 
         this.options = {
-            Validators: [{
+            Validators: {
                 "text-all": {
                     "keys": "",
                     "errorMessage": "",
@@ -269,7 +269,7 @@ var AutoForm = function () {
                     "validatorFunction": false,
                     "keypressValidatorFunction": false
                 }
-            }],
+            },
             ShowErrorMsg: options.ShowErrorMsg || false,
             ErrorMsgContainer: options.ErrorMsgContainer || ".autoforms-errors",
             EnableAnimations: options.EnableAnimations || true,
@@ -281,7 +281,7 @@ var AutoForm = function () {
             CancelErrorMsg: options.CancelErrorMsg || false,
             PositiveValidation: options.PositiveValidation || true
         };
-        Object.assign(this.options.Validators[0], options.Validators);
+        Object.assign(this.options.Validators, options.Validators);
         this.valid = false;
         this._node = htmlElementNode;
         // this.errorString = "";
