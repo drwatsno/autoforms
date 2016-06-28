@@ -220,14 +220,6 @@ class AutoForm {
                     "validatorFunction":false,
                     "keypressValidatorFunction":false
                 },
-                "maskphone": {
-                    "keys":"40 41 43 45 13 48 49 50 51 52 53 54 55 56 57 40 41 45",
-                    "errorMessage":"Type only numbers",
-                    "validatorFunction":function (field) {
-                       return field.valid = field._node.value.indexOf("_")<0
-                    },
-                    "keypressValidatorFunction":false
-                },
                 "radio": {
                     "keys":"",
                     "errorMessage":"",
@@ -259,7 +251,7 @@ class AutoForm {
                     "validatorFunction":false,
                     "keypressValidatorFunction":false
                 }
-            }].concat(options.Validators),
+            }],
             ShowErrorMsg       : options.ShowErrorMsg||false,
             ErrorMsgContainer  : options.ErrorMsgContainer||".autoforms-errors",
             EnableAnimations   : options.EnableAnimations||true,
@@ -271,6 +263,7 @@ class AutoForm {
             CancelErrorMsg     : options.CancelErrorMsg||false,
             PositiveValidation : options.PositiveValidation||true
         };
+        Object.assign(this.options.Validators[0], options.Validators);
         this.valid = false;
         this._node = htmlElementNode;
        // this.errorString = "";
