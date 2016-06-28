@@ -50,6 +50,7 @@ class Field {
      * @param node
      * @param autoForm
      */
+
     constructor(node,autoForm) {
         var currentField = this;
         currentField._node = node;
@@ -79,31 +80,17 @@ class Field {
                 currentField._autoForm.submit.click();
             }
 
-            switch (currentField._data.fieldType) {
-                case "text-all": noLimit = true; break;
-                case "checkbox": noLimit = true; break;
-                case "text-url": checkString = "13 49 50 51 52 53 54 55 56 57 48 45 61 95 43 113 119 101 114 116 121 117 105 111 112 91 93 97 115 100 102 103 104 106 107 108 59 39 122 120 99 118 98 110 109 44 46 47 81 87 69 82 84 89 85 73 79 80 123 125 124 65 83 68 70 71 72 74 75 76 58 90 88 67 86 66 78 77 60 62 63";
-                    invalidKeyErrorMsg = "Type only latin";
-                    break;
-                case "date":     checkString = "13 47 46 49 50 51 52 53 54 55 56 57 48";
-                    additionalValidation = (currentField._node.value.length < 10);
-                    invalidKeyErrorMsg = "Type only numbers and delimiters";
-                    break;
-                case "email":   checkString = "13 48 49 50 51 52 53 54 55 56 57 46 64 113 119 101 114 116 121 117 105 111 112 97 115 100 102 103 104 106 107 108 122 120 99 118 98 110 109 45 81 87 69 82 84 89 85 73 79 80 65 83 68 70 71 72 74 75 76 90 88 67 86 66 78 77";
-                    invalidKeyErrorMsg = "Type only latin";
-                    break;
-                case "phone":   checkString = "40 41 43 45 13 48 49 50 51 52 53 54 55 56 57 40 41 45";
-                    invalidKeyErrorMsg = "Type only numbers";
-                    break;
-                case "number":   checkString = "48 49 50 51 52 53 54 55 56 57";
-                    invalidKeyErrorMsg = "Type only numbers";
-                    break;
-                case "maskphone":   checkString = "40 41 43 45 13 48 49 50 51 52 53 54 55 56 57 40 41 45";
-                    invalidKeyErrorMsg = "Type only numbers";
-                    break;
-
+            if (currentField._autoForm.options.Validators[0][currentField._data.fieldType].keypressValidatorFunction) {
+                additionalValidation = currentField._autoForm.options.Validators[0][currentField._data.fieldType].keypressValidatorFunction(currentField)
             }
+            if (currentField._autoForm.options.Validators[0][currentField._data.fieldType].keys) {
+                checkString = currentField._autoForm.options.Validators[0][currentField._data.fieldType].keys
+            } else {
+                noLimit = true;
+            }
+
             if (additionalValidation && (!noLimit) && (checkString.search(evt.which) === -1)) {
+                evt.preventDefault();
                 if (currentField._autoForm.options.InvalidKeyErrorMsg) {
                     if (currentField._data.keyerrwrapid) {
                         keyErrWrap = document.querySelector("." + currentField._data.keyerrwrapid);
@@ -157,20 +144,14 @@ class Field {
         var self = this;
         self.empty = self._node.value === "";
         if (!self.empty ) { // if field is not empty
-            switch (self._data.fieldType) { // begin validation
-                case "text-all": self.valid = true; break; // any text
-                case "text-url": self.valid = true; break; // any text
-                case "date": self.valid = true; break;     // TODO: validate date
-                case "phone": self.valid = true; break;    // TODO: validate phone
-                case "maskphone": self.valid = self._node.value.indexOf("_")<0; break;
-                case "radio": self.valid = self._autoForm.querySelector("input[name='"+self._node.getAttribute("name")+"']:checked").value != undefined||(!self._data.required); break;
-                case "email":  // in e-mail we search for '@' and '.' symbols
-                    self.valid = ((String(self._node.value).indexOf("@") > -1) && (String(self._node.value).indexOf(".") > -1));
-                    if (!self.valid) { self.autoForm.errorString = "Неправильный email"; }
-                    break;
-                case "checkbox":
-                    self.valid = true; break;
-                case "number": self.valid = true; break; // TODO: validate numbers
+            if (self._autoForm.options.Validators[0][self._data.fieldType]) {
+                if (self._autoForm.options.Validators[0][self._data.fieldType].validatorFunction) {
+                    self.valid = self._autoForm.options.Validators[0][self._data.fieldType].validatorFunction(self);
+                } else {
+                    self.valid = true;
+                }
+            } else {
+                self.valid = true;
             }
             if (self._data.crossValid) {
                 if (document.querySelector("#"+self._data.crossValid).value !== "") self.valid = true;
@@ -212,6 +193,73 @@ class AutoForm {
         var thisAutoForm = this;
 
         this.options = {
+            Validators         : [{
+                "text-all": {
+                    "keys":"",
+                    "errorMessage":"",
+                    "validatorFunction":false,
+                    "keypressValidatorFunction":false
+                },
+                "text-url": {
+                    "keys":"13 49 50 51 52 53 54 55 56 57 48 45 61 95 43 113 119 101 114 116 121 117 105 111 112 91 93 97 115 100 102 103 104 106 107 108 59 39 122 120 99 118 98 110 109 44 46 47 81 87 69 82 84 89 85 73 79 80 123 125 124 65 83 68 70 71 72 74 75 76 58 90 88 67 86 66 78 77 60 62 63",
+                    "errorMessage":"Type only latin",
+                    "validatorFunction":false,
+                    "keypressValidatorFunction":false
+                },
+                "date": {
+                    "keys":"13 47 46 49 50 51 52 53 54 55 56 57 48",
+                    "errorMessage":"Type only numbers and delimiters",
+                    "validatorFunction":false,
+                    "keypressValidatorFunction": function (field) {
+                        return (field._node.value.length < 10)
+                    }
+                },
+                "phone": {
+                    "keys":"40 41 43 45 13 48 49 50 51 52 53 54 55 56 57 40 41 45",
+                    "errorMessage":"Type only numbers",
+                    "validatorFunction":false,
+                    "keypressValidatorFunction":false
+                },
+                "maskphone": {
+                    "keys":"40 41 43 45 13 48 49 50 51 52 53 54 55 56 57 40 41 45",
+                    "errorMessage":"Type only numbers",
+                    "validatorFunction":function (field) {
+                       return field.valid = field._node.value.indexOf("_")<0
+                    },
+                    "keypressValidatorFunction":false
+                },
+                "radio": {
+                    "keys":"",
+                    "errorMessage":"",
+                    "validatorFunction":function (field) {
+                        return field._autoForm.querySelector("input[name='"+field._node.getAttribute("name")+"']:checked").value != undefined||(!field._data.required)
+                    },
+                    "keypressValidatorFunction":false
+                },
+                "email": {
+                    "keys":"13 48 49 50 51 52 53 54 55 56 57 46 64 113 119 101 114 116 121 117 105 111 112 97 115 100 102 103 104 106 107 108 122 120 99 118 98 110 109 45 81 87 69 82 84 89 85 73 79 80 65 83 68 70 71 72 74 75 76 90 88 67 86 66 78 77",
+                    "errorMessage":"Type only latin",
+                    "validatorFunction":function (field) {
+                        let valid = false;
+                        valid = ((String(field._node.value).indexOf("@") > -1) && (String(field._node.value).indexOf(".") > -1));
+                        if (!valid) { field.autoForm.errorString = "incorrect email"; }
+                        return valid;
+                    },
+                    "keypressValidatorFunction":false
+                },
+                "checkbox": {
+                    "keys":"",
+                    "errorMessage":"",
+                    "validatorFunction":false,
+                    "keypressValidatorFunction":false
+                },
+                "number": {
+                    "keys":"48 49 50 51 52 53 54 55 56 57",
+                    "errorMessage":"Type only numbers",
+                    "validatorFunction":false,
+                    "keypressValidatorFunction":false
+                }
+            }].concat(options.Validators),
             ShowErrorMsg       : options.ShowErrorMsg||false,
             ErrorMsgContainer  : options.ErrorMsgContainer||".autoforms-errors",
             EnableAnimations   : options.EnableAnimations||true,
