@@ -64,129 +64,133 @@ var Field = function () {
         currentField.empty = false;
         currentField.valid = false;
         currentField._autoForm = autoForm;
-
-        var noLimit = false,
-            checkString = void 0,
-            keyErrWrap = void 0,
-            additionalValidation = true;
-
-        currentField._node.addEventListener("keyup", function () {
-            return currentField._autoForm.onValidateActionsRun();
-        });
-        currentField._node.addEventListener("change", function () {
-            return currentField._autoForm.onValidateActionsRun();
-        });
-        currentField._node.addEventListener("click", function () {
-            currentField._autoForm.onValidateActionsRun();
-            if (document.querySelector(currentField._autoForm.options.ErrorMsgContainer)) {
-                document.querySelectorAll(currentField._autoForm.options.ErrorMsgContainer).innerHTML = "";
-            }
-
-            this.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
-        });
-        currentField._node.addEventListener("keypress", function (evt) {
-            var invalidKeyErrorMsg = "Unvalid char";
-            if (evt.keyCode === 13 && currentField._autoForm.submit.attributes.disabled !== 'disabled' && this.tagName !== "TEXTAREA") {
-                currentField._autoForm.submit.click();
-            }
-
-            if (currentField._autoForm.options.Validators[currentField._data.fieldType].keypressValidatorFunction) {
-                additionalValidation = currentField._autoForm.options.Validators[currentField._data.fieldType].keypressValidatorFunction(currentField);
-            }
-            if (currentField._autoForm.options.Validators[currentField._data.fieldType].keys) {
-                checkString = currentField._autoForm.options.Validators[currentField._data.fieldType].keys;
-            } else {
-                noLimit = true;
-            }
-
-            if (additionalValidation && !noLimit && checkString.search(evt.which) === -1) {
-                evt.preventDefault();
-                if (currentField._autoForm.options.InvalidKeyErrorMsg) {
-                    if (currentField._data.keyerrwrapid) {
-                        keyErrWrap = document.querySelector("." + currentField._data.keyerrwrapid);
-                    } else {
-                        keyErrWrap = document.querySelector("." + AUTOFORM_KEYERROR_WRAP_CLASS);
-                        if (keyErrWrap) {
-                            document.querySelector(currentField._autoForm.options.ErrorMsgContainer).innerHTML = '<div class="' + AUTOFORM_KEYERROR_WRAP_CLASS + '" style="opacity: 0"></div>';
-                            keyErrWrap = document.querySelector("." + AUTOFORM_KEYERROR_WRAP_CLASS);
-                        }
-                    }
-
-                    keyErrWrap.style.opacity = 1;
-                    if (keyErrWrap.querySelector("." + AUTOFORM_KEYERROR_CLASS)) {
-                        keyErrWrap.innerHTML = keyErrWrap.innerHTML + '<span class="' + AUTOFORM_KEYERROR_CLASS + '" style="opacity: 1">' + invalidKeyErrorMsg + '</span>';
-                        setTimeout(function () {
-                            keyErrWrap.querySelectorAll("." + AUTOFORM_KEYERROR_CLASS).style.opacity = 0;
-                            keyErrWrap.querySelectorAll("." + AUTOFORM_KEYERROR_CLASS).remove();
-                        }, 900);
-                    }
-                }
-                return false;
-            } else {
-                if (currentField._autoForm.options.InvalidKeyErrorMsg) {
-                    if (document.querySelectorAll("." + AUTOFORM_KEYERROR_WRAP_CLASS + " ." + AUTOFORM_KEYERROR_CLASS)) {
-                        document.querySelectorAll("." + AUTOFORM_KEYERROR_WRAP_CLASS + " ." + AUTOFORM_KEYERROR_CLASS).style.opacity = 0;
-                        document.querySelectorAll("." + AUTOFORM_KEYERROR_WRAP_CLASS + " ." + AUTOFORM_KEYERROR_CLASS).remove();
-                    }
-                }
-            }
-        });
-
-        if (currentField._autoForm.options.PositiveValidation) {
-            currentField._node.addEventListener("focusout", function () {
-                if (currentField.validate()) {
-                    currentField._node.classList.add("valid");
-                }
-            });
-            currentField._node.addEventListener("focusin", function () {
-                currentField._node.classList.remove("valid");
-            });
-        }
+        currentField.addFieldActions();
     }
 
     /**
-     * Method validates single field
-     * @returns {boolean|*}
+     * Method adds event listeners to field
      */
 
 
     _createClass(Field, [{
+        key: "addFieldActions",
+        value: function addFieldActions() {
+            var currentField = this;
+            var allowAllSymbols = false,
+                checkString = void 0,
+                keyErrWrap = void 0,
+                additionalValidation = true;
+
+            currentField._node.addEventListener("keyup", function () {
+                return currentField._autoForm.updateState();
+            });
+            currentField._node.addEventListener("change", function () {
+                return currentField._autoForm.updateState();
+            });
+            currentField._node.addEventListener("click", function () {
+                currentField._autoForm.updateState();
+                if (document.querySelector(currentField._autoForm.options.ErrorMsgContainer)) {
+                    document.querySelectorAll(currentField._autoForm.options.ErrorMsgContainer).innerHTML = "";
+                }
+
+                this.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
+            });
+            currentField._node.addEventListener("keypress", function (evt) {
+                var invalidKeyErrorMsg = "Unvalid char";
+                if (evt.keyCode === 13 && currentField._autoForm.submit.attributes.disabled !== 'disabled' && this.tagName !== "TEXTAREA") {
+                    currentField._autoForm.submit.click();
+                }
+
+                if (currentField._autoForm.options.Validators[currentField._data.fieldType].keypressValidatorFunction) {
+                    additionalValidation = currentField._autoForm.options.Validators[currentField._data.fieldType].keypressValidatorFunction(currentField);
+                }
+                if (currentField._autoForm.options.Validators[currentField._data.fieldType].keys) {
+                    checkString = currentField._autoForm.options.Validators[currentField._data.fieldType].keys;
+                } else {
+                    allowAllSymbols = true;
+                }
+
+                if (additionalValidation && !allowAllSymbols && checkString.search(evt.which) === -1) {
+                    evt.preventDefault();
+                    if (currentField._autoForm.options.InvalidKeyErrorMsg) {
+                        if (currentField._data.keyerrwrapid) {
+                            keyErrWrap = document.querySelector("." + currentField._data.keyerrwrapid);
+                        } else {
+                            keyErrWrap = document.querySelector("." + AUTOFORM_KEYERROR_WRAP_CLASS);
+                            if (keyErrWrap) {
+                                document.querySelector(currentField._autoForm.options.ErrorMsgContainer).innerHTML = '<div class="' + AUTOFORM_KEYERROR_WRAP_CLASS + '" style="opacity: 0"></div>';
+                                keyErrWrap = document.querySelector("." + AUTOFORM_KEYERROR_WRAP_CLASS);
+                            }
+                        }
+
+                        keyErrWrap.style.opacity = 1;
+                        if (keyErrWrap.querySelector("." + AUTOFORM_KEYERROR_CLASS)) {
+                            keyErrWrap.innerHTML = keyErrWrap.innerHTML + '<span class="' + AUTOFORM_KEYERROR_CLASS + '" style="opacity: 1">' + invalidKeyErrorMsg + '</span>';
+                            setTimeout(function () {
+                                keyErrWrap.querySelectorAll("." + AUTOFORM_KEYERROR_CLASS).style.opacity = 0;
+                                keyErrWrap.querySelectorAll("." + AUTOFORM_KEYERROR_CLASS).remove();
+                            }, 900);
+                        }
+                    }
+                    return false;
+                } else {
+                    if (currentField._autoForm.options.InvalidKeyErrorMsg && currentField._data.keyerrwrapid) {
+                        if (document.querySelectorAll("." + AUTOFORM_KEYERROR_WRAP_CLASS + " ." + AUTOFORM_KEYERROR_CLASS)) {
+                            document.querySelectorAll("." + AUTOFORM_KEYERROR_WRAP_CLASS + " ." + AUTOFORM_KEYERROR_CLASS).style.opacity = 0;
+                            document.querySelectorAll("." + AUTOFORM_KEYERROR_WRAP_CLASS + " ." + AUTOFORM_KEYERROR_CLASS).remove();
+                        }
+                    }
+                }
+            });
+
+            if (currentField._autoForm.options.PositiveValidation) {
+                currentField._node.addEventListener("focusout", function () {
+                    if (currentField.validate()) {
+                        currentField._node.classList.add("valid");
+                    }
+                });
+                currentField._node.addEventListener("focusin", function () {
+                    currentField._node.classList.remove("valid");
+                });
+            }
+        }
+
+        /**
+         * Method validates single field
+         * @returns {boolean|*}
+         */
+
+    }, {
         key: "validate",
         value: function validate() {
-            var self = this;
-            self.empty = self._node.value === "";
-            if (!self.empty) {
+            var _this = this;
+            _this.empty = _this._node.value === "";
+            if (!_this.empty) {
                 // if field is not empty
-                if (self._autoForm.options.Validators[self._data.fieldType]) {
-                    if (self._autoForm.options.Validators[self._data.fieldType].validatorFunction) {
-                        self.valid = self._autoForm.options.Validators[self._data.fieldType].validatorFunction(self);
+                if (_this._autoForm.options.Validators[_this._data.fieldType]) {
+                    if (_this._autoForm.options.Validators[_this._data.fieldType].validatorFunction) {
+                        _this.valid = _this._autoForm.options.Validators[_this._data.fieldType].validatorFunction(_this);
                     } else {
-                        self.valid = true;
+                        _this.valid = true;
                     }
                 } else {
-                    self.valid = true;
+                    _this.valid = true;
                 }
-                if (self._data.crossValid) {
-                    if (document.querySelector("#" + self._data.crossValid).value !== "") self.valid = true;
+                if (_this._data.crossValid) {
+                    if (document.querySelector("#" + _this._data.crossValid).value !== "") _this.valid = true;
                 }
-                // returning this.valid property after validation
-                return self.valid;
+                return _this.valid;
             } else {
-                // field is empty
-                if (self._data.required !== true && self._data.required !== undefined) {
-                    // but not required
-                    self.valid = true;
-                    // skipping
-                    return self.valid;
+                if (_this._data.required !== true && _this._data.required !== undefined) {
+                    _this.valid = true;
+                    return _this.valid;
                 } else {
-                    //  but if required
-                    self._autoForm.errorString = "Fill up required fields";
-                    // marking as not valid and changing errorString
-                    self.valid = false;
-                    if (self._data.crossValid) {
-                        if (document.querySelector("#" + self._data.crossValid).value !== "") self.valid = true;
+                    _this._autoForm.errorString = "Fill up required fields";
+                    _this.valid = false;
+                    if (_this._data.crossValid) {
+                        if (document.querySelector("#" + _this._data.crossValid).value !== "") _this.valid = true;
                     }
-                    return self.valid;
+                    return _this.valid;
                 }
             }
         }
@@ -251,7 +255,7 @@ var AutoForm = function () {
                         var valid = false;
                         valid = String(field._node.value).indexOf("@") > -1 && String(field._node.value).indexOf(".") > -1;
                         if (!valid) {
-                            field.autoForm.errorString = "incorrect email";
+                            field._autoForm.errorString = "incorrect email";
                         }
                         return valid;
                     },
@@ -324,18 +328,18 @@ var AutoForm = function () {
     _createClass(AutoForm, [{
         key: "validate",
         value: function validate() {
-            var self = this;
-            self.valid = true;
+            var _this = this;
+            _this.valid = true;
             var _iteratorNormalCompletion2 = true;
             var _didIteratorError2 = false;
             var _iteratorError2 = undefined;
 
             try {
-                for (var _iterator2 = self.fields[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                for (var _iterator2 = _this.fields[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
                     var field = _step2.value;
 
                     if (!field.validate()) {
-                        self.valid = false;
+                        _this.valid = false;
                     }
                 }
             } catch (err) {
@@ -353,16 +357,16 @@ var AutoForm = function () {
                 }
             }
 
-            return self.valid;
+            return _this.valid;
         }
     }, {
-        key: "onValidateActionsRun",
+        key: "updateState",
 
 
         /**
          * This method run actions that changes form states
          */
-        value: function onValidateActionsRun() {
+        value: function updateState() {
             var _this = this;
             if (_this.validate()) {
                 if (_this.options.FormInvalidClass) {
@@ -396,13 +400,13 @@ var AutoForm = function () {
                 _this.highlightInvalidFields("on");
                 if (_this.valid) {} else {
                     if (_this.options.ShowErrorMsg) {
-                        if (document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).length < 1) {
-                            document.getElementById(_this.options.ErrorMsgContainer).innerHTML = '<div class="' + AUTOFORM_KEYERROR_WRAP_CLASS + '" style="opacity: 0"></div>';
+                        if (_this._node.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).length < 1) {
+                            _this._node.getElementById(_this.options.ErrorMsgContainer).innerHTML = '<div class="' + AUTOFORM_KEYERROR_WRAP_CLASS + '" style="opacity: 0"></div>';
                         }
                         if (_this.options.EnableAnimations) {
-                            document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>" + errorString + "</span>";
+                            _this._node.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>" + errorString + "</span>";
                         } else {
-                            document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>" + errorString + "</span>";
+                            _this._node.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>" + errorString + "</span>";
                         }
                     }
                 }
@@ -412,9 +416,9 @@ var AutoForm = function () {
                 if (_this.valid) {}
                 if (_this.options.ShowErrorMsg) {
                     if (_this.options.EnableAnimations) {
-                        document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).style.opacity = 0;
+                        _this._node.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).style.opacity = 0;
                     } else {
-                        document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "";
+                        _this._node.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "";
                     }
                 }
             });

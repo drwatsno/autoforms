@@ -58,16 +58,23 @@ class Field {
         currentField.empty = false;
         currentField.valid = false;
         currentField._autoForm = autoForm;
+        currentField.addFieldActions();
+    }
 
-        let noLimit = false,
+    /**
+     * Method adds event listeners to field
+     */
+    addFieldActions() {
+        var currentField = this;
+        let allowAllSymbols = false,
             checkString,
             keyErrWrap,
             additionalValidation = true;
 
-        currentField._node.addEventListener("keyup",() => currentField._autoForm.onValidateActionsRun());
-        currentField._node.addEventListener("change",() => currentField._autoForm.onValidateActionsRun());
+        currentField._node.addEventListener("keyup",() => currentField._autoForm.updateState());
+        currentField._node.addEventListener("change",() => currentField._autoForm.updateState());
         currentField._node.addEventListener("click", function () {
-            currentField._autoForm.onValidateActionsRun();
+            currentField._autoForm.updateState();
             if (document.querySelector(currentField._autoForm.options.ErrorMsgContainer)) {
                 document.querySelectorAll(currentField._autoForm.options.ErrorMsgContainer).innerHTML = "";
             }
@@ -86,10 +93,10 @@ class Field {
             if (currentField._autoForm.options.Validators[currentField._data.fieldType].keys) {
                 checkString = currentField._autoForm.options.Validators[currentField._data.fieldType].keys
             } else {
-                noLimit = true;
+                allowAllSymbols = true;
             }
 
-            if (additionalValidation && (!noLimit) && (checkString.search(evt.which) === -1)) {
+            if (additionalValidation && (!allowAllSymbols) && (checkString.search(evt.which) === -1)) {
                 evt.preventDefault();
                 if (currentField._autoForm.options.InvalidKeyErrorMsg) {
                     if (currentField._data.keyerrwrapid) {
@@ -114,7 +121,7 @@ class Field {
                 }
                 return false;
             } else {
-                if (currentField._autoForm.options.InvalidKeyErrorMsg) {
+                if (currentField._autoForm.options.InvalidKeyErrorMsg&&currentField._data.keyerrwrapid) {
                     if (document.querySelectorAll("."+AUTOFORM_KEYERROR_WRAP_CLASS+" ."+AUTOFORM_KEYERROR_CLASS)) {
                         document.querySelectorAll("."+AUTOFORM_KEYERROR_WRAP_CLASS+" ."+AUTOFORM_KEYERROR_CLASS).style.opacity = 0;
                         document.querySelectorAll("."+AUTOFORM_KEYERROR_WRAP_CLASS+" ."+AUTOFORM_KEYERROR_CLASS).remove();
@@ -141,41 +148,35 @@ class Field {
      * @returns {boolean|*}
      */
     validate() {
-        var self = this;
-        self.empty = self._node.value === "";
-        if (!self.empty ) { // if field is not empty
-            if (self._autoForm.options.Validators[self._data.fieldType]) {
-                if (self._autoForm.options.Validators[self._data.fieldType].validatorFunction) {
-                    self.valid = self._autoForm.options.Validators[self._data.fieldType].validatorFunction(self);
+        var _this = this;
+        _this.empty = _this._node.value === "";
+        if (!_this.empty ) { // if field is not empty
+            if (_this._autoForm.options.Validators[_this._data.fieldType]) {
+                if (_this._autoForm.options.Validators[_this._data.fieldType].validatorFunction) {
+                    _this.valid = _this._autoForm.options.Validators[_this._data.fieldType].validatorFunction(_this);
                 } else {
-                    self.valid = true;
+                    _this.valid = true;
                 }
             } else {
-                self.valid = true;
+                _this.valid = true;
             }
-            if (self._data.crossValid) {
-                if (document.querySelector("#"+self._data.crossValid).value !== "") self.valid = true;
+            if (_this._data.crossValid) {
+                if (document.querySelector("#"+_this._data.crossValid).value !== "") _this.valid = true;
             }
-            // returning this.valid property after validation
-            return self.valid;
+            return _this.valid;
         }
         else {
-            // field is empty
-            if ((self._data.required !== true)&&(self._data.required !== undefined)) {
-                // but not required
-                self.valid = true;
-                // skipping
-                return self.valid;
+            if ((_this._data.required !== true)&&(_this._data.required !== undefined)) {
+                _this.valid = true;
+                return _this.valid;
             }
             else {
-                //  but if required
-                self._autoForm.errorString = "Fill up required fields";
-                // marking as not valid and changing errorString
-                self.valid = false;
-                if (self._data.crossValid) {
-                    if (document.querySelector("#"+self._data.crossValid).value !== "") self.valid = true;
+                _this._autoForm.errorString = "Fill up required fields";
+                _this.valid = false;
+                if (_this._data.crossValid) {
+                    if (document.querySelector("#"+_this._data.crossValid).value !== "") _this.valid = true;
                 }
-                return self.valid;
+                return _this.valid;
             }
         }
     };
@@ -234,7 +235,7 @@ class AutoForm {
                     "validatorFunction":function (field) {
                         let valid = false;
                         valid = ((String(field._node.value).indexOf("@") > -1) && (String(field._node.value).indexOf(".") > -1));
-                        if (!valid) { field.autoForm.errorString = "incorrect email"; }
+                        if (!valid) { field._autoForm.errorString = "incorrect email"; }
                         return valid;
                     },
                     "keypressValidatorFunction":false
@@ -281,20 +282,20 @@ class AutoForm {
      * @returns {boolean}
      */
     validate() {
-        var self = this;
-        self.valid = true;
-        for (let field of self.fields) {
+        var _this = this;
+        _this.valid = true;
+        for (let field of _this.fields) {
             if (!field.validate()) {
-                self.valid = false;
+                _this.valid = false;
             }
         }
-        return self.valid;
+        return _this.valid;
     };
 
     /**
      * This method run actions that changes form states
      */
-    onValidateActionsRun() {
+    updateState() {
         var _this = this;
         if (_this.validate()) {
             if (_this.options.FormInvalidClass) {
@@ -329,14 +330,14 @@ class AutoForm {
             }
             else {
                 if (_this.options.ShowErrorMsg) {
-                    if (document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).length < 1) {
-                        document.getElementById(_this.options.ErrorMsgContainer).innerHTML = '<div class="'+AUTOFORM_KEYERROR_WRAP_CLASS+'" style="opacity: 0"></div>';
+                    if (_this._node.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).length < 1) {
+                        _this._node.getElementById(_this.options.ErrorMsgContainer).innerHTML = '<div class="'+AUTOFORM_KEYERROR_WRAP_CLASS+'" style="opacity: 0"></div>';
                     }
                     if (_this.options.EnableAnimations) {
-                        document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
+                        _this._node.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
                     }
                     else {
-                        document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
+                        _this._node.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>"+errorString+"</span>";
                     }
                 }
             }
@@ -347,10 +348,10 @@ class AutoForm {
             }
             if (_this.options.ShowErrorMsg) {
                 if (_this.options.EnableAnimations) {
-                    document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).style.opacity = 0;
+                    _this._node.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).style.opacity = 0;
                 }
                 else {
-                    document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "";
+                    _this._node.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "";
                 }
 
             }
