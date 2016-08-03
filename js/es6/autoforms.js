@@ -247,6 +247,40 @@ class AutoForm {
         this.valid = false;
         this._node = htmlElementNode;
         // this.errorString = "";
+        this.updateFields();
+
+        htmlElementNode.addEventListener("DOMNodeInserted", function (event) {
+            thisAutoForm.updateFields();
+        }, false);
+
+        if (MutationObserver) {
+            var observer = new MutationObserver(function(mutations) {
+                var update = false;
+                mutations.forEach(function(mutation) {
+                    if (mutation.type == "childList") {
+                        update = true;
+                    }
+                });
+
+                if (update) {
+                    thisAutoForm.updateFields();
+                }
+            });
+
+            observer.observe(htmlElementNode, {
+                attributes: true,
+                childList: true,
+                characterData: true
+            });
+        }
+    }
+
+    /**
+     * updates fields list in object (you can call this method to update fields if form changed)
+     */
+    updateFields() {
+        var thisAutoForm = this;
+
         this.submit = this._node.querySelector('input[type="submit"]').length < 1?document.querySelector('input[form="' + this._node.id + '"]'):this._node.querySelector('input[type="submit"]');
         this.fields = [];
         let fields = this._node.querySelectorAll('input[type="text"], input[type="password"], input[type="checkbox"], input[type="radio"], select, textarea, input[type="text"][form="' + this._node.id + '"], select[form="' + this._node.id + '"], input[type="radio"][form="' + this._node.id + '"]');
@@ -416,7 +450,7 @@ var autoforms = {
 
         if (!options) options = {};
 
-        var newAufmWidget = aufm.widgets[newElementName] = new AutoForm(htmlElementNode, options);
+        var newAufmWidget = htmlElementNode.autoform = aufm.widgets[newElementName] = new AutoForm(htmlElementNode, options);
         newAufmWidget.initEvents();
 
     }

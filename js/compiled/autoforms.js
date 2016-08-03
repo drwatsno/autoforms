@@ -270,43 +270,80 @@ var AutoForm = function () {
         this.valid = false;
         this._node = htmlElementNode;
         // this.errorString = "";
-        this.submit = this._node.querySelector('input[type="submit"]').length < 1 ? document.querySelector('input[form="' + this._node.id + '"]') : this._node.querySelector('input[type="submit"]');
-        this.fields = [];
-        var fields = this._node.querySelectorAll('input[type="text"], input[type="password"], input[type="checkbox"], input[type="radio"], select, textarea, input[type="text"][form="' + this._node.id + '"], select[form="' + this._node.id + '"], input[type="radio"][form="' + this._node.id + '"]');
+        this.updateFields();
 
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
+        htmlElementNode.addEventListener("DOMNodeInserted", function (event) {
+            thisAutoForm.updateFields();
+        }, false);
 
-        try {
-            for (var _iterator = fields[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                var field = _step.value;
+        if (MutationObserver) {
+            var observer = new MutationObserver(function (mutations) {
+                var update = false;
+                mutations.forEach(function (mutation) {
+                    if (mutation.type == "childList") {
+                        update = true;
+                    }
+                });
 
-                this.fields.push(new Field(field, thisAutoForm));
-            }
-        } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion && _iterator.return) {
-                    _iterator.return();
+                if (update) {
+                    thisAutoForm.updateFields();
                 }
-            } finally {
-                if (_didIteratorError) {
-                    throw _iteratorError;
-                }
-            }
+            });
+
+            observer.observe(htmlElementNode, {
+                attributes: true,
+                childList: true,
+                characterData: true
+            });
         }
     }
 
     /**
-     * Checks all fields of form. If at least one field is not valid (validate() method returns false) returns false
-     * @returns {boolean}
+     * updates fields list in object (you can call this method to update fields if form changed)
      */
 
 
     _createClass(AutoForm, [{
+        key: "updateFields",
+        value: function updateFields() {
+            var thisAutoForm = this;
+
+            this.submit = this._node.querySelector('input[type="submit"]').length < 1 ? document.querySelector('input[form="' + this._node.id + '"]') : this._node.querySelector('input[type="submit"]');
+            this.fields = [];
+            var fields = this._node.querySelectorAll('input[type="text"], input[type="password"], input[type="checkbox"], input[type="radio"], select, textarea, input[type="text"][form="' + this._node.id + '"], select[form="' + this._node.id + '"], input[type="radio"][form="' + this._node.id + '"]');
+
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = fields[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var field = _step.value;
+
+                    this.fields.push(new Field(field, thisAutoForm));
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+        }
+
+        /**
+         * Checks all fields of form. If at least one field is not valid (validate() method returns false) returns false
+         * @returns {boolean}
+         */
+
+    }, {
         key: "validate",
         value: function validate() {
             var _this = this;
@@ -504,7 +541,7 @@ var autoforms = {
 
         if (!options) options = {};
 
-        var newAufmWidget = aufm.widgets[newElementName] = new AutoForm(htmlElementNode, options);
+        var newAufmWidget = htmlElementNode.autoform = aufm.widgets[newElementName] = new AutoForm(htmlElementNode, options);
         newAufmWidget.initEvents();
     }
 };
