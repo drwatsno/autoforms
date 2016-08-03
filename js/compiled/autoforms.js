@@ -15,28 +15,9 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* 1.00
-
- Plugin is designed to automatically validate the form when you hover on submit associated with this form
- For proper operation of the script, you need to add the type of validation attribute 'data-field-type' to fields.
- Optional fields are marked with attribute data-required = 'false'.
-
- *
- *  Usage: autoform.init(htmlObject,options)
- *
- *  valid values for data-field-type:
- *  text-all - validate any text
- *  text-url - validate only latin symbols
- *  date - validate only numbers and separators
- *  phone - validate only numbers
- *  maskphone - validate only numbers and ()/+
- *  radio - validate only if one of radios in group is selected
- *  e-mail - validate only if input value contains @ and . symbols
- *  checkbox - validate only if checked
- *
- *  */
-
 "use strict";
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -515,7 +496,7 @@ var AutoForm = function () {
     return AutoForm;
 }();
 
-window.autoform = {
+var autoforms = {
     widgets: {}, // all widgets with inited autoform
     init: function init(htmlElementNode, options) {
         var aufm = this,
@@ -527,5 +508,12 @@ window.autoform = {
         newAufmWidget.initEvents();
     }
 };
-
-//# sourceMappingURL=autoforms-compiled.js.map
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        define([], factory);
+    } else if ((typeof module === "undefined" ? "undefined" : _typeof(module)) === 'object' && module.exports) {
+        module.exports = factory;
+    } else {
+        root.returnExports = factory;
+    }
+})(this, autoforms);

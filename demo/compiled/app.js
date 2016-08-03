@@ -11,7 +11,7 @@ window.onload = function () {
         for (var _iterator = forms[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
             var form = _step.value;
 
-            autoform.init(form, {
+            autoforms.init(form, {
                 Validators: {
                     "maskphone": {
                         "keys": "40 41 43 45 13 48 49 50 51 52 53 54 55 56 57 40 41 45",
@@ -39,5 +39,3 @@ window.onload = function () {
         }
     }
 };
-
-//# sourceMappingURL=app-compiled.js.map

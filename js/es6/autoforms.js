@@ -15,27 +15,6 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* 1.00
-
- Plugin is designed to automatically validate the form when you hover on submit associated with this form
- For proper operation of the script, you need to add the type of validation attribute 'data-field-type' to fields.
- Optional fields are marked with attribute data-required = 'false'.
-
- *
- *  Usage: autoform.init(htmlObject,options)
- *
- *  valid values for data-field-type:
- *  text-all - validate any text
- *  text-url - validate only latin symbols
- *  date - validate only numbers and separators
- *  phone - validate only numbers
- *  maskphone - validate only numbers and ()/+
- *  radio - validate only if one of radios in group is selected
- *  e-mail - validate only if input value contains @ and . symbols
- *  checkbox - validate only if checked
- *
- *  */
-
 "use strict";
 
 const AUTOFORM_FIELD_INVALID_CLASS = "autoform-invalid";
@@ -267,7 +246,7 @@ class AutoForm {
         Object.assign(this.options.Validators, options.Validators);
         this.valid = false;
         this._node = htmlElementNode;
-       // this.errorString = "";
+        // this.errorString = "";
         this.submit = this._node.querySelector('input[type="submit"]').length < 1?document.querySelector('input[form="' + this._node.id + '"]'):this._node.querySelector('input[type="submit"]');
         this.fields = [];
         let fields = this._node.querySelectorAll('input[type="text"], input[type="password"], input[type="checkbox"], input[type="radio"], select, textarea, input[type="text"][form="' + this._node.id + '"], select[form="' + this._node.id + '"], input[type="radio"][form="' + this._node.id + '"]');
@@ -428,8 +407,7 @@ class AutoForm {
     };
 }
 
-
-window.autoform = {
+var autoforms = {
     widgets: {}, // all widgets with inited autoform
     init: function (htmlElementNode, options) {
         var aufm = this,
@@ -439,7 +417,16 @@ window.autoform = {
         if (!options) options = {};
 
         var newAufmWidget = aufm.widgets[newElementName] = new AutoForm(htmlElementNode, options);
-            newAufmWidget.initEvents();
+        newAufmWidget.initEvents();
 
     }
 };
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        define([], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        module.exports = factory;
+    } else {
+        root.returnExports = factory;
+    }
+}(this, autoforms));
