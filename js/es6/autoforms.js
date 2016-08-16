@@ -87,16 +87,16 @@ class Field {
                             keyErrWrap = document.querySelector("."+AUTOFORM_KEYERROR_WRAP_CLASS);
                         }
                     }
-
-                    keyErrWrap.style.opacity = 1;
-                    if (keyErrWrap.querySelector("."+AUTOFORM_KEYERROR_CLASS)) {
-                        keyErrWrap.innerHTML = keyErrWrap.innerHTML + '<span class="'+AUTOFORM_KEYERROR_CLASS+'" style="opacity: 1">' + invalidKeyErrorMsg + '</span>';
-                        setTimeout(function () {
-                            keyErrWrap.querySelectorAll("."+AUTOFORM_KEYERROR_CLASS).style.opacity = 0;
-                            keyErrWrap.querySelectorAll("."+AUTOFORM_KEYERROR_CLASS).remove();
-                        }, 900);
+                    if (keyErrWrap) {
+                        keyErrWrap.style.opacity = 1;
+                        if (keyErrWrap.querySelector("."+AUTOFORM_KEYERROR_CLASS)) {
+                            keyErrWrap.innerHTML = keyErrWrap.innerHTML + '<span class="'+AUTOFORM_KEYERROR_CLASS+'" style="opacity: 1">' + invalidKeyErrorMsg + '</span>';
+                            setTimeout(function () {
+                                keyErrWrap.querySelectorAll("."+AUTOFORM_KEYERROR_CLASS).style.opacity = 0;
+                                keyErrWrap.querySelectorAll("."+AUTOFORM_KEYERROR_CLASS).remove();
+                            }, 900);
+                        }
                     }
-
                 }
                 return false;
             } else {
@@ -203,8 +203,9 @@ class AutoForm {
                 "radio": {
                     "keys":"",
                     "errorMessage":"",
-                    "validatorFunction":function (field) {
-                        return field._autoForm.querySelector("input[name='"+field._node.getAttribute("name")+"']:checked").value != undefined||(!field._data.required)
+                    "validatorFunction": function validatorFunction(field) {
+                        var checkedVals = field._autoForm._node.querySelector("input[name='" + field._node.getAttribute("name") + "']:checked");
+                        return checkedVals?(checkedVals.value != undefined || !field._data.required):false;
                     },
                     "keypressValidatorFunction":false
                 },
@@ -222,7 +223,17 @@ class AutoForm {
                 "checkbox": {
                     "keys":"",
                     "errorMessage":"",
-                    "validatorFunction":false,
+                    "validatorFunction": function validatorFunction(field) {
+                        if (field._node.checked) {
+                            return true;
+                        } else {
+                            if (typeof field._data.required != "undefined") {
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        }
+                    },
                     "keypressValidatorFunction":false
                 },
                 "number": {
