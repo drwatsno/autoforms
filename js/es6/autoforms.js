@@ -30,7 +30,7 @@ class Field {
      * @param autoForm
      */
 
-    constructor(node,autoForm) {
+    constructor(node, autoForm) {
         var currentField = this;
         currentField._node = node;
         currentField._data = node.dataset;
@@ -124,9 +124,10 @@ class Field {
 
     /**
      * Method validates single field
+     * @param callFromGroup if called from group validator
      * @returns {boolean|*}
      */
-    validate() {
+    validate(callFromGroup) {
         var _this = this;
         _this.empty = _this._node.value === "";
         if (!_this.empty ) { // if field is not empty
@@ -139,25 +140,20 @@ class Field {
             } else {
                 _this.valid = true;
             }
-            if (_this._data.crossValid) {
-                if (document.querySelector("#"+_this._data.crossValid).value !== "") _this.valid = true;
-            }
-            return _this.valid;
         }
         else {
-            if ((_this._data.required !== true)&&(_this._data.required !== undefined)) {
+            if ((!_this._data.required)&&(_this._data.required !== undefined)) {
                 _this.valid = true;
-                return _this.valid;
             }
             else {
                 _this._autoForm.errorString = "Fill up required fields";
                 _this.valid = false;
-                if (_this._data.crossValid) {
-                    if (document.querySelector("#"+_this._data.crossValid).value !== "") _this.valid = true;
-                }
-                return _this.valid;
             }
         }
+        if (_this._data.group&&!callFromGroup) {
+            _this.valid = _this._autoForm.validateGroupWithOperator(_this._data.group,_this._data.groupValidateOperator);
+        }
+        return _this.valid;
     };
 }
 
@@ -302,6 +298,59 @@ class AutoForm {
     }
 
     /**
+     * returns array of fields filtered by group
+     * @param groupName
+     * @returns {Array.<*>}
+     */
+    getFieldsByGroup(groupName) {
+        var thisAutoForm = this;
+        return thisAutoForm.fields.filter(function (field) {
+            return field._data.group == groupName
+        })
+    }
+
+    /**
+     * Validate fields grouped by data-group attribute
+     * @param groupName
+     * @param operator validation operator (currently "or" or "and")
+     * @returns {boolean}
+     */
+    validateGroupWithOperator(groupName, operator) {
+        var thisAutoForm = this,
+            fields = thisAutoForm.getFieldsByGroup(groupName),
+            groupValid = false;
+        
+       
+        switch (operator) {
+            case "or": {
+                fields.forEach(function (field) {
+                    if (field.validate(true)) {
+                        groupValid = true;
+                    }
+                });
+            } break;
+            case "and": {
+                groupValid = true;
+                fields.forEach(function (field) {
+                    if (!field.validate(true)) {
+                        groupValid = false;
+                    }
+                });
+            } break;
+            default: {
+                groupValid = true;
+                fields.forEach(function (field) {
+                    if (!field.validate(true)) {
+                        groupValid = false;
+                    }
+                });
+            } break;
+        }
+
+        return groupValid;
+    }
+
+    /**
      * Checks all fields of form. If at least one field is not valid (validate() method returns false) returns false
      * @returns {boolean}
      */
@@ -437,7 +486,7 @@ class AutoForm {
         var _this = this;
         for (let field of _this.fields) {
             if (opts !== "off") {
-                if (field.valid) {
+                if (field.validate()) {
                     field._node.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
                 }
                 else {

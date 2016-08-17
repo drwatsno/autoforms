@@ -56,7 +56,10 @@
                             <input type="text" name="name" data-field-type="text-all">
 
                             <label>Email</label>
-                            <input type="text" name="email" data-field-type="email">
+                            <input type="text" name="email" data-field-type="email" data-group="contact" data-group-validate-operator="or">
+
+                            <label>or Phone</label>
+                            <input type="text" name="phone" data-field-type="number" data-group="contact" data-group-validate-operator="or">
 
                             <label>Text</label>
                             <textarea name="info" id="" cols="30" rows="10" data-field-type="text-all"></textarea>
