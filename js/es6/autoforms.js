@@ -21,6 +21,7 @@ const AUTOFORM_FIELD_INVALID_CLASS = "autoform-invalid";
 const AUTOFORM_FORM_INVALID_CLASS = "autoform-form-invalid";
 const AUTOFORM_SUBMIT_INVALID_CLASS = "autoform-submit-invalid";
 const AUTOFORM_KEYERROR_CLASS = "keyerr";
+const AUTOFORM_HOVERED_ONCE = "autoform-submit-hovered-once";
 const AUTOFORM_KEYERROR_WRAP_CLASS = "autoforms_errors";
 
 class Field {
@@ -33,6 +34,7 @@ class Field {
     constructor(node, autoForm) {
         var currentField = this;
         currentField._node = node;
+        node.autoformField = currentField;
         currentField._data = node.dataset;
         currentField.empty = false;
         currentField.valid = false;
@@ -111,9 +113,14 @@ class Field {
         });
 
         if (currentField._autoForm.options.PositiveValidation) {
-            currentField._node.addEventListener("focusout", function(){
+            currentField._node.addEventListener("focusout", function () {
                 if (currentField.validate()) {
                     currentField._node.classList.add("valid");
+                    currentField._node.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
+                } else {
+                    if (currentField._autoForm.options.LeaveUnvalidHighlights&&currentField._autoForm._node.classList.contains(AUTOFORM_HOVERED_ONCE)) {
+                        currentField._node.classList.add(AUTOFORM_FIELD_INVALID_CLASS);
+                    }
                 }
             });
             currentField._node.addEventListener("focusin", function(){
@@ -248,7 +255,8 @@ class AutoForm {
             InvalidKeyTimeout  : options.InvalidKeyTimeout||1000,
             CancelButton       : options.CancelButton||".cancel",
             CancelErrorMsg     : options.CancelErrorMsg||false,
-            PositiveValidation : options.PositiveValidation||true
+            PositiveValidation : options.PositiveValidation||true,
+            LeaveUnvalidHighlights: options.LeaveUnvalidHighlights || false
         };
         Object.assign(this.options.Validators, options.Validators);
         this.valid = false;
@@ -416,7 +424,9 @@ class AutoForm {
             }
         });
         _this.submit.parentNode.addEventListener("mouseleave", function () {
-            _this.highlightInvalidFields("off");
+            if (!_this.options.LeaveUnvalidHighlights) {
+                _this.highlightInvalidFields("off");
+            }
             if (_this.valid) {
             }
             if (_this.options.ShowErrorMsg) {
