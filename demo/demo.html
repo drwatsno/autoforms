@@ -30,13 +30,28 @@
 
                             </div>
                             <label>Phone Number</label>
-                            <input type="text" name="phone" data-field-type="maskphone" placeholder="+7 (___) ___-__-__">
+                            <input class="au-elements_text-input" type="text" name="phone" data-field-type="maskphone" placeholder="+7 (___) ___-__-__">
 
                             <label>Name</label>
-                            <input type="text" name="name" data-field-type="text-all">
+                            <input class="au-elements_text-input" type="text" name="name" data-field-type="text-all">
 
                             <label>Email</label>
-                            <input type="text" name="email" data-field-type="email">
+                            <input class="au-elements_text-input" type="email" name="email" data-field-type="email">
+
+                            <label>Password</label>
+                            <input class="au-elements_text-input" type="password" name="password" data-field-type="password">
+
+                            <label>Male</label>
+                            <input type="radio" name="gender" value="male">
+
+                            <label>Female</label>
+                            <input type="radio" name="gender" value="female">
+
+                            <label>Accept rules</label>
+                            <input type="checkbox" name="accept" value="accept">
+
+                            <label>Accept non-required rules</label>
+                            <input type="checkbox" name="accept" value="accept" data-required="false">
 
                             <div class="hover-layer">
                                 <input type="submit" class="forest-elements_button-yellow" value="Submit">
@@ -53,19 +68,19 @@
                             </div>
 
                             <label>Name</label>
-                            <input type="text" name="name" data-field-type="text-all">
+                            <input class="au-elements_text-input" type="text" name="name">
 
                             <label>Email</label>
-                            <input type="text" name="email" data-field-type="email" data-group="contact" data-group-validate-operator="or">
+                            <input class="au-elements_text-input" type="email" name="email" data-group="contact" data-group-validate-operator="or">
 
                             <label>or Phone</label>
-                            <input type="text" name="phone" data-field-type="number" data-group="contact" data-group-validate-operator="or">
+                            <input class="au-elements_text-input" type="number" name="phone" data-group="contact" data-group-validate-operator="or">
 
                             <label>Text</label>
-                            <textarea name="info" id="" cols="30" rows="10" data-field-type="text-all"></textarea>
+                            <textarea class="au-elements_text-input" name="info" id="" cols="30" rows="10" data-field-type="text"></textarea>
 
                             <div class="hover-layer">
-                                <input type="submit" class="forest-elements_button-yellow" value="Submit">
+                                <button type="submit" class="forest-elements_button-yellow">Submit</button>
                             </div>
                         </div>
                     </form>

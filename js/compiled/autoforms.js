@@ -203,6 +203,18 @@ var AutoForm = function () {
 
         this.options = {
             Validators: {
+                "text": {
+                    "keys": "",
+                    "errorMessage": "",
+                    "validatorFunction": false,
+                    "keypressValidatorFunction": false
+                },
+                "password": {
+                    "keys": "",
+                    "errorMessage": "",
+                    "validatorFunction": false,
+                    "keypressValidatorFunction": false
+                },
                 "text-all": {
                     "keys": "",
                     "errorMessage": "",
@@ -210,6 +222,12 @@ var AutoForm = function () {
                     "keypressValidatorFunction": false
                 },
                 "text-url": {
+                    "keys": "1234567890-=_+qwertyuiop[]asdfghjkl;'zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:ZXCVBNM<>?",
+                    "errorMessage": "Type only latin",
+                    "validatorFunction": false,
+                    "keypressValidatorFunction": false
+                },
+                "url": {
                     "keys": "1234567890-=_+qwertyuiop[]asdfghjkl;'zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:ZXCVBNM<>?",
                     "errorMessage": "Type only latin",
                     "validatorFunction": false,
@@ -247,12 +265,8 @@ var AutoForm = function () {
                 "email": {
                     "keys": "0123456789.@qwertyuiopasdfghjklzxcvbnm-QWERTYUIOPASDFGHJKLZXCVBNM",
                     "validatorFunction": function validatorFunction(field) {
-                        var valid = false;
-                        valid = String(field._node.value).indexOf("@") > -1 && String(field._node.value).indexOf(".") > -1;
-                        if (!valid) {
-                            field._autoForm.errorString = "incorrect email";
-                        }
-                        return valid;
+                        return (/\S+\@\S+\.[a-z]+/i.test(field._node.value)
+                        );
                     },
                     "keypressValidatorFunction": false
                 },
@@ -262,13 +276,8 @@ var AutoForm = function () {
                     "validatorFunction": function validatorFunction(field) {
                         if (field._node.checked) {
                             return true;
-                        } else {
-                            if (typeof field._data.required != "undefined") {
-                                return true;
-                            } else {
-                                return false;
-                            }
                         }
+                        return typeof field._data.required != "undefined";
                     },
                     "keypressValidatorFunction": false
                 },

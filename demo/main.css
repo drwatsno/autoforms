@@ -16,8 +16,7 @@
   display: block;
   margin-bottom: 0.5rem;
 }
-.au-block_form input[type="text"],
-.au-block_form textarea {
+.au-block_form .au-elements_text-input {
   width: 100%;
   padding: 0.5rem;
   border-radius: 0.5rem;
@@ -28,7 +27,8 @@
   outline: none;
   box-sizing: border-box;
 }
-.au-block_form input[type="submit"] {
+.au-block_form input[type="submit"],
+.au-block_form button {
   padding: 0.2rem 0.5rem;
   background: #4fb400;
   border: none;
@@ -37,7 +37,8 @@
   border-radius: 0.2rem;
   box-sizing: border-box;
 }
-.au-block_form input[type="submit"][disabled] {
+.au-block_form input[type="submit"][disabled],
+.au-block_form button[disabled] {
   background: #cccccc;
 }
 .au-root_header {
@@ -65,11 +66,11 @@
   .au-block_section {
     margin: 1.4rem;
   }
-  input[type="submit"] {
+  input[type="submit"],
+  button {
     font-size: 2rem;
   }
-  input[type="text"],
-  textarea {
+  .au-elements_text-input {
     font-size: 2rem;
   }
   label {
@@ -97,11 +98,11 @@
   .au-block_section {
     margin: 1.4rem;
   }
-  input[type="submit"] {
+  input[type="submit"],
+  button {
     font-size: 2rem;
   }
-  input[type="text"],
-  textarea {
+  .au-elements_text-input {
     font-size: 2rem;
   }
   label {
@@ -113,15 +114,14 @@
     max-width: 35rem;
     margin: 0 auto;
   }
-  input[type="submit"] {
+  input[type="submit"],
+  button {
     font-size: 1.2rem;
   }
-  input[type="text"],
-  textarea {
+  .au-elements_text-input {
     font-size: 1.2rem;
   }
   label {
     font-size: 1.2rem;
   }
 }
-
