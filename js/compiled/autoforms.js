@@ -263,7 +263,7 @@ var AutoForm = function () {
                     "keypressValidatorFunction": false
                 },
                 "email": {
-                    "keys": "0123456789.@qwertyuiopasdfghjklzxcvbnm-QWERTYUIOPASDFGHJKLZXCVBNM",
+                    "keys": "0123456789.@qwertyuiopasdfghjklzxcvbnm-QWERTYUIOPASDFGHJKLZXCVBNM_",
                     "validatorFunction": function validatorFunction(field) {
                         return (/\S+\@\S+\.[a-z]+/i.test(field._node.value)
                         );
@@ -656,4 +656,4 @@ var autoforms = {
     } else {
         root.returnExports = factory;
     }
-})(this, autoforms);
+})(undefined, autoforms);

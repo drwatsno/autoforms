@@ -239,7 +239,7 @@ class AutoForm {
                     "keypressValidatorFunction": false
                 },
                 "email": {
-                    "keys":"0123456789.@qwertyuiopasdfghjklzxcvbnm-QWERTYUIOPASDFGHJKLZXCVBNM",
+                    "keys":"0123456789.@qwertyuiopasdfghjklzxcvbnm-QWERTYUIOPASDFGHJKLZXCVBNM_",
                     "validatorFunction":function (field) {
                         return (/\S+\@\S+\.[a-z]+/i).test(field._node.value);
                     },
