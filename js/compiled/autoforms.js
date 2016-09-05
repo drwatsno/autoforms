@@ -656,4 +656,4 @@ var autoforms = {
     } else {
         root.returnExports = factory;
     }
-})(undefined, autoforms);
+})(this, autoforms);
