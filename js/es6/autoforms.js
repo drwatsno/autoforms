@@ -37,7 +37,7 @@ class Field {
         currentField._node = node;
         node.autoformField = currentField;
         currentField._data = node.dataset;
-        currentField.type = currentField._data.fieldType || currentField._node.attributes.type.value;
+        currentField.type = currentField._data.fieldType || currentField._node.attributes.type?currentField._node.attributes.type.value:"text";
         currentField.empty = false;
         currentField.valid = false;
         currentField._autoForm = autoForm;
