@@ -45,7 +45,7 @@ var Field = function () {
         currentField._node = node;
         node.autoformField = currentField;
         currentField._data = node.dataset;
-        currentField.type = currentField._data.fieldType || currentField._node.attributes.type ? currentField._node.attributes.type.value : "text";
+        currentField.type = currentField._data.fieldType || (currentField._node.attributes.type ? currentField._node.attributes.type.value : "text");
         currentField.empty = false;
         currentField.valid = false;
         currentField._autoForm = autoForm;
@@ -300,7 +300,9 @@ var AutoForm = function () {
             PositiveValidation: options.PositiveValidation || true,
             LeaveUnvalidHighlights: options.LeaveUnvalidHighlights || false
         };
-        Object.assign(this.options.Validators, options.Validators);
+        for (var key in options.Validators) {
+            this.options.Validators[key] = options.Validators[key];
+        }
         this.valid = false;
         this._node = htmlElementNode;
         // this.errorString = "";
@@ -639,13 +641,17 @@ var AutoForm = function () {
 var autoforms = {
     widgets: {}, // all widgets with inited autoform
     init: function init(htmlElementNode, options) {
-        var aufm = this,
-            newElementName = (htmlElementNode.className + htmlElementNode.id).toLowerCase().replace(new RegExp("[^[a-zA-Z0-9]]*", "g"), '_');
+        if (htmlElementNode) {
+            var aufm = this,
+                newElementName = (htmlElementNode.className + htmlElementNode.id).toLowerCase().replace(new RegExp("[^[a-zA-Z0-9]]*", "g"), '_');
 
-        if (!options) options = {};
+            if (!options) options = {};
 
-        var newAufmWidget = htmlElementNode.autoform = aufm.widgets[newElementName] = new AutoForm(htmlElementNode, options);
-        newAufmWidget.initEvents();
+            var newAufmWidget = htmlElementNode.autoform = aufm.widgets[newElementName] = new AutoForm(htmlElementNode, options);
+            newAufmWidget.initEvents();
+        } else {
+            console.error("Error: trying to init autoforms on undefined node");
+        }
     }
 };
 (function (root, factory) {
@@ -656,4 +662,4 @@ var autoforms = {
     } else {
         root.returnExports = factory;
     }
-})(this, autoforms);
+})(undefined, autoforms);
