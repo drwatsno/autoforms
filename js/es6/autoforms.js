@@ -23,7 +23,19 @@ const AUTOFORM_SUBMIT_INVALID_CLASS = "autoform-submit-invalid";
 const AUTOFORM_KEYERROR_CLASS = "keyerr";
 const AUTOFORM_HOVERED_ONCE = "autoform-submit-hovered-once";
 const AUTOFORM_KEYERROR_WRAP_CLASS = "autoforms_errors";
+const AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS = "autoforms_errors";
 const HTML5_INPUT_TYPES = ["text", "password", "checkbox", "radio", "number", "color", "date", "datetime", "datetime-local", "email", "range", "search", "tel", "time", "url", "month", "week"];
+
+class ErrorMessage {
+    constructor(field) {
+        if (!field.empty) {
+            this.message = field.autoFormLink.options.Validators[field.type].errorMessage + " " + (field.nodeLink.dataset.name || field.nodeLink.name);
+        } else {
+            this.message = `${field.nodeLink.dataset.name || field.nodeLink.name} is empty`;
+        }
+        this.nodeLink = field.nodeLink;
+    }
+}
 
 class Field {
     /**
@@ -65,7 +77,7 @@ class Field {
             this.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
         });
         currentField.nodeLink.addEventListener("keypress", function (evt) {
-            let invalidKeyErrorMsg = "Unvalid char";
+            //let invalidKeyErrorMsg = "Unvalid char";
             if ((evt.keyCode === 13) && (currentField.autoFormLink.submit.attributes.disabled !== "disabled") && (this.tagName !== "TEXTAREA")) {
                 currentField.autoFormLink.submit.click();
             }
@@ -180,23 +192,24 @@ class AutoForm {
     constructor(htmlElementNode, options) {
         let thisAutoForm = this;
 
+        this.errorStack = [];
         this.options = {
             Validators: {
                 "text": {
                     "keys": "",
-                    "errorMessage": "",
+                    "errorMessage": "Field is empty",
                     "validatorFunction": false,
                     "keypressValidatorFunction": false
                 },
                 "password": {
                     "keys": "",
-                    "errorMessage": "",
+                    "errorMessage": "Field is empty",
                     "validatorFunction": false,
                     "keypressValidatorFunction": false
                 },
                 "text-all": {
                     "keys": "",
-                    "errorMessage": "",
+                    "errorMessage": "Field is empty",
                     "validatorFunction": false,
                     "keypressValidatorFunction": false
                 },
@@ -228,7 +241,7 @@ class AutoForm {
                 },
                 "radio": {
                     "keys": "",
-                    "errorMessage": "",
+                    "errorMessage": "Please check one of radiobuttons",
                     "validatorFunction": function validatorFunction(field) {
                         let checkedVals = field.autoFormLink.nodeLink.querySelector(`input[name="${field.nodeLink.getAttribute("name")}"]:checked`);
                         return checkedVals ? (checkedVals.value !== undefined || !field.dataOpts.required) : false;
@@ -237,12 +250,13 @@ class AutoForm {
                 },
                 "select": {
                     "keys": "",
-                    "errorMessage": "",
+                    "errorMessage": "Select an element in dropdown",
                     "validatorFunction": false,
                     "keypressValidatorFunction": false
                 },
                 "email": {
                     "keys": "0123456789.@qwertyuiopasdfghjklzxcvbnm-QWERTYUIOPASDFGHJKLZXCVBNM_",
+                    "errorMessage": "Email is not valid",
                     "validatorFunction": function (field) {
                         return (/\S+\@\S+\.[a-z]+/i).test(field.nodeLink.value);
                     },
@@ -250,7 +264,7 @@ class AutoForm {
                 },
                 "checkbox": {
                     "keys": "",
-                    "errorMessage": "",
+                    "errorMessage": "Please select checkbox",
                     "validatorFunction": function validatorFunction(field) {
                         if (field.nodeLink.checked) {
                             return true;
@@ -286,17 +300,13 @@ class AutoForm {
         this.valid = false;
         this.nodeLink = htmlElementNode;
         this.updateFields();
-
-        htmlElementNode.addEventListener("DOMNodeInserted", function () {
-            thisAutoForm.updateFields();
-        }, false);
-
         if (MutationObserver) {
             let observer = new MutationObserver(function(mutations) {
                 let update = false;
                 mutations.forEach(function(mutation) {
-                    if (mutation.type === "childList") {
+                    if (mutation.type === "childList" && mutation.target.classList[0] !== "autoforms_errors") {
                         update = true;
+                        console.log(mutation);
                     }
                 });
 
@@ -308,7 +318,8 @@ class AutoForm {
             observer.observe(htmlElementNode, {
                 attributes: true,
                 childList: true,
-                characterData: true
+                characterData: true,
+                subtree: true
             });
         }
     }
@@ -396,10 +407,21 @@ class AutoForm {
      */
     validate() {
         let self = this;
+        self.errorStack = [];
         self.valid = true;
         for (let field of self.fields) {
             if (!field.validate()) {
                 self.valid = false;
+                let addToStack = true;
+                let errorMessage = new ErrorMessage(field);
+                self.errorStack.forEach(function(err) {
+                    if (errorMessage.message === err.message) {
+                        addToStack = false;
+                    }
+                });
+                if (addToStack) {
+                    self.errorStack.push(errorMessage);
+                }
             }
         }
         return self.valid;
@@ -411,6 +433,7 @@ class AutoForm {
     updateState() {
         let self = this;
         if (self.validate()) {
+            self.nodeLink.querySelector(`.${AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS}`).innerHTML = "";
             if (self.options.FormInvalidClass) {
                 self.nodeLink.classList.remove(AUTOFORM_FORM_INVALID_CLASS);
             }
@@ -420,6 +443,9 @@ class AutoForm {
             }
         }
         else {
+            self.nodeLink.querySelector(`.${AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS}`).innerHTML = self.errorStack.map(function (err) {
+                return `<span class="error-message">${err.message}</span><br>`;
+            }).join("");
             if (self.options.FormInvalidClass) {
                 self.nodeLink.classList.add(AUTOFORM_FORM_INVALID_CLASS);
             }
@@ -450,10 +476,10 @@ class AutoForm {
                         self.nodeLink.getElementById(self.options.ErrorMsgContainer).innerHTML = `<div class="${AUTOFORM_KEYERROR_WRAP_CLASS}" style="opacity: 0"></div>`;
                     }
                     if (self.options.EnableAnimations) {
-                        self.nodeLink.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = `<span style="opacity:1">${errorString}</span>`;
+                        self.nodeLink.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = `<span style="opacity:1">${self.errorString}</span>`;
                     }
                     else {
-                        self.nodeLink.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = `<span style="opacity:1">${errorString}</span>`;
+                        self.nodeLink.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = `<span style="opacity:1">${self.errorString}</span>`;
                     }
                 }
             }
@@ -505,14 +531,14 @@ class AutoForm {
                     document.getElementById(self.options.ErrorMsgContainer).innerHTML = `<div id="${AUTOFORM_KEYERROR_WRAP_CLASS}" style="opacity: 0"></div>`;
                 }
                 if (self.options.EnableAnimations) {
-                    document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = `<span style="opacity:1">${errorString}</span>`;
+                    document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = `<span style="opacity:1">${self.errorString}</span>`;
                 }
                 else {
-                    document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = `<span style="opacity:1">${errorString}</span>`;
+                    document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = `<span style="opacity:1">${self.errorString}</span>`;
                 }
             });
             document.querySelector(self.options.CancelButton).addEventListener("mouseleave", function () {
-                self. errorString = "";
+                self.errorString = "";
                 if (self.options.EnableAnimations) {
                     document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).style.opacity = 0;
                 }
@@ -552,14 +578,16 @@ let autoforms = {
         if (htmlElementNode) {
             let aufm = this,
 
-                newElementName = (htmlElementNode.className+htmlElementNode.id).toLowerCase().replace(new RegExp("[^[a-zA-Z0-9]]*","g"),"_");
+                newElementName = (htmlElementNode.className + htmlElementNode.id).toLowerCase().replace(new RegExp("[^[a-zA-Z0-9]]*", "g"), "_");
 
-            if (!options) options = {};
+            if (!options) {
+                options = {};
+            }
 
             let newAufmWidget = htmlElementNode.autoform = aufm.widgets[newElementName] = new AutoForm(htmlElementNode, options);
             newAufmWidget.initEvents();
         } else {
-            console.error("Error: trying to init autoforms on undefined node")
+            console.error("Error: trying to init autoforms on undefined node");
         }
     }
 };
