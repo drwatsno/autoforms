@@ -1,0 +1,22 @@
+{
+  "env" : {
+    "es6": true,
+    "node": true
+  },
+  "globals": {
+    "window": true,
+    "document": true,
+    "MutationObserver": true,
+    "define": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "rules": {
+    "semi": 2
+  }
+}

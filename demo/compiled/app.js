@@ -14,10 +14,10 @@ window.onload = function () {
             autoforms.init(form, {
                 Validators: {
                     "maskphone": {
-                        "keys": "40 41 43 45 13 48 49 50 51 52 53 54 55 56 57 40 41 45",
+                        "keys": "()+-0123456789()-",
                         "errorMessage": "Type only numbers",
                         "validatorFunction": function validatorFunction(field) {
-                            return field.valid = field._node.value.indexOf("_") < 0;
+                            return field.valid = field.nodeLink.value.indexOf("_") < 0;
                         },
                         "keypressValidatorFunction": false
                     }

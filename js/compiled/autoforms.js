@@ -29,7 +29,7 @@ var AUTOFORM_SUBMIT_INVALID_CLASS = "autoform-submit-invalid";
 var AUTOFORM_KEYERROR_CLASS = "keyerr";
 var AUTOFORM_HOVERED_ONCE = "autoform-submit-hovered-once";
 var AUTOFORM_KEYERROR_WRAP_CLASS = "autoforms_errors";
-var HTML5_INPUT_TYPES = ['text', 'password', 'checkbox', 'radio', 'number', 'color', 'date', 'datetime', 'datetime-local', 'email', 'range', 'search', 'tel', 'time', 'url', 'month', 'week'];
+var HTML5_INPUT_TYPES = ["text", "password", "checkbox", "radio", "number", "color", "date", "datetime", "datetime-local", "email", "range", "search", "tel", "time", "url", "month", "week"];
 
 var Field = function () {
     /**
@@ -42,13 +42,13 @@ var Field = function () {
         _classCallCheck(this, Field);
 
         var currentField = this;
-        currentField._node = node;
+        currentField.nodeLink = node;
         node.autoformField = currentField;
-        currentField._data = node.dataset;
-        currentField.type = currentField._data.fieldType || (currentField._node.attributes.type ? currentField._node.attributes.type.value : "text");
+        currentField.dataOpts = node.dataset;
+        currentField.type = currentField.dataOpts.fieldType || (currentField.nodeLink.attributes.type ? currentField.nodeLink.attributes.type.value : "text");
         currentField.empty = false;
         currentField.valid = false;
-        currentField._autoForm = autoForm;
+        currentField.autoFormLink = autoForm;
         currentField.addFieldActions();
     }
 
@@ -66,53 +66,53 @@ var Field = function () {
                 keyErrWrap = void 0,
                 additionalValidation = true;
 
-            currentField._node.addEventListener("keyup", function () {
-                return currentField._autoForm.updateState();
+            currentField.nodeLink.addEventListener("keyup", function () {
+                return currentField.autoFormLink.updateState();
             });
-            currentField._node.addEventListener("change", function () {
-                return currentField._autoForm.updateState();
+            currentField.nodeLink.addEventListener("change", function () {
+                return currentField.autoFormLink.updateState();
             });
-            currentField._node.addEventListener("click", function () {
-                currentField._autoForm.updateState();
-                if (document.querySelector(currentField._autoForm.options.ErrorMsgContainer)) {
-                    document.querySelectorAll(currentField._autoForm.options.ErrorMsgContainer).innerHTML = "";
+            currentField.nodeLink.addEventListener("click", function () {
+                currentField.autoFormLink.updateState();
+                if (document.querySelector(currentField.autoFormLink.options.ErrorMsgContainer)) {
+                    document.querySelectorAll(currentField.autoFormLink.options.ErrorMsgContainer).innerHTML = "";
                 }
 
                 this.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
             });
-            currentField._node.addEventListener("keypress", function (evt) {
+            currentField.nodeLink.addEventListener("keypress", function (evt) {
                 var invalidKeyErrorMsg = "Unvalid char";
-                if (evt.keyCode === 13 && currentField._autoForm.submit.attributes.disabled !== 'disabled' && this.tagName !== "TEXTAREA") {
-                    currentField._autoForm.submit.click();
+                if (evt.keyCode === 13 && currentField.autoFormLink.submit.attributes.disabled !== "disabled" && this.tagName !== "TEXTAREA") {
+                    currentField.autoFormLink.submit.click();
                 }
 
-                if (currentField._autoForm.options.Validators[currentField.type].keypressValidatorFunction) {
-                    additionalValidation = currentField._autoForm.options.Validators[currentField.type].keypressValidatorFunction(currentField);
+                if (currentField.autoFormLink.options.Validators[currentField.type].keypressValidatorFunction) {
+                    additionalValidation = currentField.autoFormLink.options.Validators[currentField.type].keypressValidatorFunction(currentField);
                 }
-                if (currentField._autoForm.options.Validators[currentField.type].keys) {
-                    checkString = currentField._autoForm.options.Validators[currentField.type].keys.split('').map(function (char) {
+                if (currentField.autoFormLink.options.Validators[currentField.type].keys) {
+                    checkString = currentField.autoFormLink.options.Validators[currentField.type].keys.split("").map(function (char) {
                         return char.charCodeAt();
-                    }).join(' ') + ' 8 9 10 13';
+                    }).join(" ") + " 8 9 10 13";
                 } else {
                     allowAllSymbols = true;
                 }
 
                 if (additionalValidation && !allowAllSymbols && checkString.search(evt.which) === -1) {
                     evt.preventDefault();
-                    if (currentField._autoForm.options.InvalidKeyErrorMsg) {
-                        if (currentField._data.keyerrwrapid) {
-                            keyErrWrap = document.querySelector("." + currentField._data.keyerrwrapid);
+                    if (currentField.autoFormLink.options.InvalidKeyErrorMsg) {
+                        if (currentField.dataOpts.keyerrwrapid) {
+                            keyErrWrap = document.querySelector("." + currentField.dataOpts.keyerrwrapid);
                         } else {
                             keyErrWrap = document.querySelector("." + AUTOFORM_KEYERROR_WRAP_CLASS);
                             if (keyErrWrap) {
-                                document.querySelector(currentField._autoForm.options.ErrorMsgContainer).innerHTML = '<div class="' + AUTOFORM_KEYERROR_WRAP_CLASS + '" style="opacity: 0"></div>';
+                                document.querySelector(currentField.autoFormLink.options.ErrorMsgContainer).innerHTML = "<div class=\"" + AUTOFORM_KEYERROR_WRAP_CLASS + "\" style=\"opacity: 0\"></div>";
                                 keyErrWrap = document.querySelector("." + AUTOFORM_KEYERROR_WRAP_CLASS);
                             }
                         }
                         if (keyErrWrap) {
                             keyErrWrap.style.opacity = 1;
                             if (keyErrWrap.querySelector("." + AUTOFORM_KEYERROR_CLASS)) {
-                                keyErrWrap.innerHTML = keyErrWrap.innerHTML + '<span class="' + AUTOFORM_KEYERROR_CLASS + '" style="opacity: 1">' + invalidKeyErrorMsg + '</span>';
+                                keyErrWrap.innerHTML = keyErrWrap.innerHTML + ("<span class=\"" + AUTOFORM_KEYERROR_CLASS + "\" style=\"opacity: 1\">\" + invalidKeyErrorMsg + \"</span>");
                                 setTimeout(function () {
                                     keyErrWrap.querySelectorAll("." + AUTOFORM_KEYERROR_CLASS).style.opacity = 0;
                                     keyErrWrap.querySelectorAll("." + AUTOFORM_KEYERROR_CLASS).remove();
@@ -122,7 +122,7 @@ var Field = function () {
                     }
                     return false;
                 } else {
-                    if (currentField._autoForm.options.InvalidKeyErrorMsg && currentField._data.keyerrwrapid) {
+                    if (currentField.autoFormLink.options.InvalidKeyErrorMsg && currentField.dataOpts.keyerrwrapid) {
                         if (document.querySelectorAll("." + AUTOFORM_KEYERROR_WRAP_CLASS + " ." + AUTOFORM_KEYERROR_CLASS)) {
                             document.querySelectorAll("." + AUTOFORM_KEYERROR_WRAP_CLASS + " ." + AUTOFORM_KEYERROR_CLASS).style.opacity = 0;
                             document.querySelectorAll("." + AUTOFORM_KEYERROR_WRAP_CLASS + " ." + AUTOFORM_KEYERROR_CLASS).remove();
@@ -131,19 +131,19 @@ var Field = function () {
                 }
             });
 
-            if (currentField._autoForm.options.PositiveValidation) {
-                currentField._node.addEventListener("focusout", function () {
+            if (currentField.autoFormLink.options.PositiveValidation) {
+                currentField.nodeLink.addEventListener("focusout", function () {
                     if (currentField.validate()) {
-                        currentField._node.classList.add("valid");
-                        currentField._node.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
+                        currentField.nodeLink.classList.add("valid");
+                        currentField.nodeLink.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
                     } else {
-                        if (currentField._autoForm.options.LeaveUnvalidHighlights && currentField._autoForm._node.classList.contains(AUTOFORM_HOVERED_ONCE)) {
-                            currentField._node.classList.add(AUTOFORM_FIELD_INVALID_CLASS);
+                        if (currentField.autoFormLink.options.LeaveUnvalidHighlights && currentField.autoFormLink.nodeLink.classList.contains(AUTOFORM_HOVERED_ONCE)) {
+                            currentField.nodeLink.classList.add(AUTOFORM_FIELD_INVALID_CLASS);
                         }
                     }
                 });
-                currentField._node.addEventListener("focusin", function () {
-                    currentField._node.classList.remove("valid");
+                currentField.nodeLink.addEventListener("focusin", function () {
+                    currentField.nodeLink.classList.remove("valid");
                 });
             }
         }
@@ -157,31 +157,31 @@ var Field = function () {
     }, {
         key: "validate",
         value: function validate(callFromGroup) {
-            var _this = this;
-            _this.empty = _this._node.value === "";
-            if (!_this.empty) {
+            var self = this;
+            self.empty = self.nodeLink.value === "";
+            if (!self.empty) {
                 // if field is not empty
-                if (_this._autoForm.options.Validators[_this.type]) {
-                    if (_this._autoForm.options.Validators[_this.type].validatorFunction) {
-                        _this.valid = _this._autoForm.options.Validators[_this.type].validatorFunction(_this);
+                if (self.autoFormLink.options.Validators[self.type]) {
+                    if (self.autoFormLink.options.Validators[self.type].validatorFunction) {
+                        self.valid = self.autoFormLink.options.Validators[self.type].validatorFunction(self);
                     } else {
-                        _this.valid = true;
+                        self.valid = true;
                     }
                 } else {
-                    _this.valid = true;
+                    self.valid = true;
                 }
             } else {
-                if (_this._data.required != true && _this._data.required !== undefined) {
-                    _this.valid = true;
+                if (self.dataOpts.required !== true && self.dataOpts.required !== undefined) {
+                    self.valid = true;
                 } else {
-                    _this._autoForm.errorString = "Fill up required fields";
-                    _this.valid = false;
+                    self.autoFormLink.errorString = "Fill up required fields";
+                    self.valid = false;
                 }
             }
-            if (_this._data.group && !callFromGroup) {
-                _this.valid = _this._autoForm.validateGroupWithOperator(_this._data.group, _this._data.groupValidateOperator);
+            if (self.dataOpts.group && !callFromGroup) {
+                self.valid = self.autoFormLink.validateGroupWithOperator(self.dataOpts.group, self.dataOpts.groupValidateOperator);
             }
-            return _this.valid;
+            return self.valid;
         }
     }]);
 
@@ -222,13 +222,13 @@ var AutoForm = function () {
                     "keypressValidatorFunction": false
                 },
                 "text-url": {
-                    "keys": "1234567890-=_+qwertyuiop[]asdfghjkl;'zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:ZXCVBNM<>?",
+                    "keys": "1234567890-=_+qwertyuiop[]asdfghjkl;\"zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:ZXCVBNM<>?",
                     "errorMessage": "Type only latin",
                     "validatorFunction": false,
                     "keypressValidatorFunction": false
                 },
                 "url": {
-                    "keys": "1234567890-=_+qwertyuiop[]asdfghjkl;'zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:ZXCVBNM<>?",
+                    "keys": "1234567890-=_+qwertyuiop[]asdfghjkl;\"zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:ZXCVBNM<>?",
                     "errorMessage": "Type only latin",
                     "validatorFunction": false,
                     "keypressValidatorFunction": false
@@ -238,7 +238,7 @@ var AutoForm = function () {
                     "errorMessage": "Type only numbers and delimiters",
                     "validatorFunction": false,
                     "keypressValidatorFunction": function keypressValidatorFunction(field) {
-                        return field._node.value.length < 10;
+                        return field.nodeLink.value.length < 10;
                     }
                 },
                 "phone": {
@@ -251,8 +251,8 @@ var AutoForm = function () {
                     "keys": "",
                     "errorMessage": "",
                     "validatorFunction": function validatorFunction(field) {
-                        var checkedVals = field._autoForm._node.querySelector("input[name='" + field._node.getAttribute("name") + "']:checked");
-                        return checkedVals ? checkedVals.value != undefined || !field._data.required : false;
+                        var checkedVals = field.autoFormLink.nodeLink.querySelector("input[name=\"" + field.nodeLink.getAttribute("name") + "\"]:checked");
+                        return checkedVals ? checkedVals.value !== undefined || !field.dataOpts.required : false;
                     },
                     "keypressValidatorFunction": false
                 },
@@ -265,7 +265,7 @@ var AutoForm = function () {
                 "email": {
                     "keys": "0123456789.@qwertyuiopasdfghjklzxcvbnm-QWERTYUIOPASDFGHJKLZXCVBNM_",
                     "validatorFunction": function validatorFunction(field) {
-                        return (/\S+\@\S+\.[a-z]+/i.test(field._node.value)
+                        return (/\S+\@\S+\.[a-z]+/i.test(field.nodeLink.value)
                         );
                     },
                     "keypressValidatorFunction": false
@@ -274,10 +274,10 @@ var AutoForm = function () {
                     "keys": "",
                     "errorMessage": "",
                     "validatorFunction": function validatorFunction(field) {
-                        if (field._node.checked) {
+                        if (field.nodeLink.checked) {
                             return true;
                         }
-                        return typeof field._data.required != "undefined";
+                        return typeof field.dataOpts.required !== "undefined";
                     },
                     "keypressValidatorFunction": false
                 },
@@ -301,14 +301,15 @@ var AutoForm = function () {
             LeaveUnvalidHighlights: options.LeaveUnvalidHighlights || false
         };
         for (var key in options.Validators) {
-            this.options.Validators[key] = options.Validators[key];
+            if (options.Validators.hasOwnProperty(key)) {
+                this.options.Validators[key] = options.Validators[key];
+            }
         }
         this.valid = false;
-        this._node = htmlElementNode;
-        // this.errorString = "";
+        this.nodeLink = htmlElementNode;
         this.updateFields();
 
-        htmlElementNode.addEventListener("DOMNodeInserted", function (event) {
+        htmlElementNode.addEventListener("DOMNodeInserted", function () {
             thisAutoForm.updateFields();
         }, false);
 
@@ -316,7 +317,7 @@ var AutoForm = function () {
             var observer = new MutationObserver(function (mutations) {
                 var update = false;
                 mutations.forEach(function (mutation) {
-                    if (mutation.type == "childList") {
+                    if (mutation.type === "childList") {
                         update = true;
                     }
                 });
@@ -344,12 +345,12 @@ var AutoForm = function () {
         value: function updateFields() {
             var thisAutoForm = this;
 
-            this.submit = this._node.querySelector('input[type="submit"]') || this._node.querySelector('button[type="submit"]') || document.querySelector('input[form="' + this._node.id + '"]') || document.querySelector('button[form="' + this._node.id + '"]') || this._node.querySelector('button');
+            this.submit = this.nodeLink.querySelector("input[type=\"submit\"]") || this.nodeLink.querySelector("button[type=\"submit\"]") || document.querySelector("input[form=\"" + this.nodeLink.id + "\"]") || document.querySelector("button[form=\"" + this.nodeLink.id + "\"]") || this.nodeLink.querySelector("button");
             this.fields = [];
-            var thisNodeId = this._node.id;
-            var fields = this._node.querySelectorAll(HTML5_INPUT_TYPES.map(function (fieldTypeHTML) {
+            var thisNodeId = this.nodeLink.id;
+            var fields = this.nodeLink.querySelectorAll(HTML5_INPUT_TYPES.map(function (fieldTypeHTML) {
                 return "input[type=\"" + fieldTypeHTML + "\"], input[type=\"" + fieldTypeHTML + "\"][form=\"" + thisNodeId + "\"]";
-            }).join(', ') + ', select, ' + 'textarea, ' + 'select[form="' + this._node.id + '"]');
+            }).join(", ") + ", select, " + "textarea, " + ("select[form=\"" + this.nodeLink.id + "\"]"));
 
             var _iteratorNormalCompletion = true;
             var _didIteratorError = false;
@@ -388,7 +389,7 @@ var AutoForm = function () {
         value: function getFieldsByGroup(groupName) {
             var thisAutoForm = this;
             return thisAutoForm.fields.filter(function (field) {
-                return field._data.group == groupName;
+                return field.dataOpts.group === groupName;
             });
         }
 
@@ -405,7 +406,6 @@ var AutoForm = function () {
             var thisAutoForm = this,
                 fields = thisAutoForm.getFieldsByGroup(groupName),
                 groupValid = false;
-
             switch (operator) {
                 case "or":
                     {
@@ -446,18 +446,18 @@ var AutoForm = function () {
     }, {
         key: "validate",
         value: function validate() {
-            var _this = this;
-            _this.valid = true;
+            var self = this;
+            self.valid = true;
             var _iteratorNormalCompletion2 = true;
             var _didIteratorError2 = false;
             var _iteratorError2 = undefined;
 
             try {
-                for (var _iterator2 = _this.fields[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                for (var _iterator2 = self.fields[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
                     var field = _step2.value;
 
                     if (!field.validate()) {
-                        _this.valid = false;
+                        self.valid = false;
                     }
                 }
             } catch (err) {
@@ -475,7 +475,7 @@ var AutoForm = function () {
                 }
             }
 
-            return _this.valid;
+            return self.valid;
         }
     }, {
         key: "updateState",
@@ -485,22 +485,22 @@ var AutoForm = function () {
          * This method run actions that changes form states
          */
         value: function updateState() {
-            var _this = this;
-            if (_this.validate()) {
-                if (_this.options.FormInvalidClass) {
-                    _this._node.classList.remove(AUTOFORM_FORM_INVALID_CLASS);
+            var self = this;
+            if (self.validate()) {
+                if (self.options.FormInvalidClass) {
+                    self.nodeLink.classList.remove(AUTOFORM_FORM_INVALID_CLASS);
                 }
-                if (_this.options.DeactivateSubmit) {
-                    _this.submit.parentElement.classList.remove(AUTOFORM_SUBMIT_INVALID_CLASS);
-                    _this.submit.removeAttribute("disabled");
+                if (self.options.DeactivateSubmit) {
+                    self.submit.parentElement.classList.remove(AUTOFORM_SUBMIT_INVALID_CLASS);
+                    self.submit.removeAttribute("disabled");
                 }
             } else {
-                if (_this.options.FormInvalidClass) {
-                    _this._node.classList.add(AUTOFORM_FORM_INVALID_CLASS);
+                if (self.options.FormInvalidClass) {
+                    self.nodeLink.classList.add(AUTOFORM_FORM_INVALID_CLASS);
                 }
-                if (_this.options.DeactivateSubmit) {
-                    _this.submit.parentElement.classList.add(AUTOFORM_SUBMIT_INVALID_CLASS);
-                    _this.submit.setAttribute("disabled", "disabled");
+                if (self.options.DeactivateSubmit) {
+                    self.submit.parentElement.classList.add(AUTOFORM_SUBMIT_INVALID_CLASS);
+                    self.submit.setAttribute("disabled", "disabled");
                 }
             }
         }
@@ -512,75 +512,78 @@ var AutoForm = function () {
     }, {
         key: "initEvents",
         value: function initEvents() {
-            var _this = this;
+            var self = this;
 
-            _this.submit.parentNode.addEventListener("mouseenter", function () {
-                _this.highlightInvalidFields("on");
-                if (!_this._node.classList.contains(AUTOFORM_HOVERED_ONCE)) {
-                    _this._node.classList.add(AUTOFORM_HOVERED_ONCE);
+            self.submit.parentNode.addEventListener("mouseenter", function () {
+                self.highlightInvalidFields("on");
+                if (!self.nodeLink.classList.contains(AUTOFORM_HOVERED_ONCE)) {
+                    self.nodeLink.classList.add(AUTOFORM_HOVERED_ONCE);
                 }
-                if (_this.valid) {} else {
-                    if (_this.options.ShowErrorMsg) {
-                        if (_this._node.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).length < 1) {
-                            _this._node.getElementById(_this.options.ErrorMsgContainer).innerHTML = '<div class="' + AUTOFORM_KEYERROR_WRAP_CLASS + '" style="opacity: 0"></div>';
-                        }
-                        if (_this.options.EnableAnimations) {
-                            _this._node.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>" + errorString + "</span>";
-                        } else {
-                            _this._node.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>" + errorString + "</span>";
+                /*if (self.valid) {
+                }*/
+                else {
+                        if (self.options.ShowErrorMsg) {
+                            if (self.nodeLink.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).length < 1) {
+                                self.nodeLink.getElementById(self.options.ErrorMsgContainer).innerHTML = "<div class=\"" + AUTOFORM_KEYERROR_WRAP_CLASS + "\" style=\"opacity: 0\"></div>";
+                            }
+                            if (self.options.EnableAnimations) {
+                                self.nodeLink.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style=\"opacity:1\">" + errorString + "</span>";
+                            } else {
+                                self.nodeLink.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style=\"opacity:1\">" + errorString + "</span>";
+                            }
                         }
                     }
-                }
             });
-            _this.submit.parentNode.addEventListener("mouseleave", function () {
-                if (!_this.options.LeaveUnvalidHighlights) {
-                    _this.highlightInvalidFields("off");
+            self.submit.parentNode.addEventListener("mouseleave", function () {
+                if (!self.options.LeaveUnvalidHighlights) {
+                    self.highlightInvalidFields("off");
                 }
-                if (_this.valid) {}
-                if (_this.options.ShowErrorMsg) {
-                    if (_this.options.EnableAnimations) {
-                        _this._node.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).style.opacity = 0;
+                /*if (self.valid) {
+                }*/
+                if (self.options.ShowErrorMsg) {
+                    if (self.options.EnableAnimations) {
+                        self.nodeLink.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).style.opacity = 0;
                     } else {
-                        _this._node.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "";
+                        self.nodeLink.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "";
                     }
                 }
             });
 
-            if (_this.valid) {
-                if (_this.options.FormInvalidClass) {
-                    _this._node.classList.remove(AUTOFORM_FORM_INVALID_CLASS);
+            if (self.valid) {
+                if (self.options.FormInvalidClass) {
+                    self.nodeLink.classList.remove(AUTOFORM_FORM_INVALID_CLASS);
                 }
-                if (_this.options.DeactivateSubmit) {
-                    _this.submit.parentNode.classList.remove(AUTOFORM_SUBMIT_INVALID_CLASS);
-                    if (_this.submit.attributes.disabled) {
-                        _this.submit.removeAttribute("disabled");
+                if (self.options.DeactivateSubmit) {
+                    self.submit.parentNode.classList.remove(AUTOFORM_SUBMIT_INVALID_CLASS);
+                    if (self.submit.attributes.disabled) {
+                        self.submit.removeAttribute("disabled");
                     }
                 }
             } else {
-                if (_this.options.FormInvalidClass) {
-                    _this._node.classList.remove(AUTOFORM_FORM_INVALID_CLASS);
+                if (self.options.FormInvalidClass) {
+                    self.nodeLink.classList.remove(AUTOFORM_FORM_INVALID_CLASS);
                 }
-                if (_this.options.DeactivateSubmit) {
-                    _this.submit.parentNode.classList.add(AUTOFORM_SUBMIT_INVALID_CLASS);
-                    _this.submit.setAttribute("disabled", "disabled");
+                if (self.options.DeactivateSubmit) {
+                    self.submit.parentNode.classList.add(AUTOFORM_SUBMIT_INVALID_CLASS);
+                    self.submit.setAttribute("disabled", "disabled");
                 }
             }
 
-            if (_this.options.CancelErrorMsg) {
-                document.querySelector(_this.options.CancelButton).addEventListener("mouseenter", function () {
-                    _this.errorString = "Будут отменены все изменения!";
+            if (self.options.CancelErrorMsg) {
+                document.querySelector(self.options.CancelButton).addEventListener("mouseenter", function () {
+                    self.errorString = "Будут отменены все изменения!";
                     if (document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).length < 1) {
-                        document.getElementById(_this.options.ErrorMsgContainer).innerHTML = '<div id="' + AUTOFORM_KEYERROR_WRAP_CLASS + '" style="opacity: 0"></div>';
+                        document.getElementById(self.options.ErrorMsgContainer).innerHTML = "<div id=\"" + AUTOFORM_KEYERROR_WRAP_CLASS + "\" style=\"opacity: 0\"></div>";
                     }
-                    if (_this.options.EnableAnimations) {
-                        document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>" + errorString + "</span>";
+                    if (self.options.EnableAnimations) {
+                        document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style=\"opacity:1\">" + errorString + "</span>";
                     } else {
-                        document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style='opacity:1'>" + errorString + "</span>";
+                        document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "<span style=\"opacity:1\">" + errorString + "</span>";
                     }
                 });
-                document.querySelector(_this.options.CancelButton).addEventListener("mouseleave", function () {
-                    _this.errorString = "";
-                    if (_this.options.EnableAnimations) {
+                document.querySelector(self.options.CancelButton).addEventListener("mouseleave", function () {
+                    self.errorString = "";
+                    if (self.options.EnableAnimations) {
                         document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).style.opacity = 0;
                     } else {
                         document.getElementById(AUTOFORM_KEYERROR_WRAP_CLASS).innerHTML = "";
@@ -597,25 +600,25 @@ var AutoForm = function () {
     }, {
         key: "highlightInvalidFields",
         value: function highlightInvalidFields(opts) {
-            var _this = this;
+            var self = this;
             var _iteratorNormalCompletion3 = true;
             var _didIteratorError3 = false;
             var _iteratorError3 = undefined;
 
             try {
-                for (var _iterator3 = _this.fields[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                for (var _iterator3 = self.fields[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
                     var field = _step3.value;
 
                     if (opts !== "off") {
                         if (field.validate()) {
-                            field._node.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
+                            field.nodeLink.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
                         } else {
-                            field._node.classList.add(AUTOFORM_FIELD_INVALID_CLASS);
+                            field.nodeLink.classList.add(AUTOFORM_FIELD_INVALID_CLASS);
                         }
                     }
 
                     if (opts === "off") {
-                        field._node.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
+                        field.nodeLink.classList.remove(AUTOFORM_FIELD_INVALID_CLASS);
                     }
                 }
             } catch (err) {
@@ -643,7 +646,7 @@ var autoforms = {
     init: function init(htmlElementNode, options) {
         if (htmlElementNode) {
             var aufm = this,
-                newElementName = (htmlElementNode.className + htmlElementNode.id).toLowerCase().replace(new RegExp("[^[a-zA-Z0-9]]*", "g"), '_');
+                newElementName = (htmlElementNode.className + htmlElementNode.id).toLowerCase().replace(new RegExp("[^[a-zA-Z0-9]]*", "g"), "_");
 
             if (!options) options = {};
 
@@ -655,11 +658,12 @@ var autoforms = {
     }
 };
 (function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
+    if (typeof define === "function" && define.amd) {
         define([], factory);
-    } else if ((typeof module === "undefined" ? "undefined" : _typeof(module)) === 'object' && module.exports) {
+    } else if ((typeof module === "undefined" ? "undefined" : _typeof(module)) === "object" && module.exports) {
         module.exports = factory;
     } else {
         root.returnExports = factory;
     }
-})(undefined, autoforms);
+})(this, autoforms);
+//# sourceMappingURL=autoforms.js.map
