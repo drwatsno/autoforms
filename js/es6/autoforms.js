@@ -28,12 +28,17 @@ const HTML5_INPUT_TYPES = ["text", "password", "checkbox", "radio", "number", "c
 
 const E_VALIDATION = 100;
 const E_EMPTY = 101;
+const E_EMPTY_CHECKBOX = 102;
 
 class ErrorMessage {
     constructor(field) {
         if (!field.empty) {
             this.message = field.autoFormLink.options.Validators[field.type].errorMessage + " " + (field.nodeLink.dataset.name || field.nodeLink.name);
-            this.type = E_VALIDATION;
+            if (field.type !== "checkbox") {
+                this.type = E_VALIDATION;
+            } else {
+                this.type = E_EMPTY_CHECKBOX;
+            }
         } else {
             this.message = `${field.nodeLink.dataset.name || field.nodeLink.name} is empty`;
             this.type = E_EMPTY;
@@ -199,7 +204,8 @@ class AutoForm {
 
         this.errorStack = {
             validationErrors: [],
-            emptyErrors: []
+            emptyErrors: [],
+            emptyCheckboxes: []
         };
         this.options = {
             Validators: {
@@ -339,16 +345,25 @@ class AutoForm {
      */
     pushError(error) {
         let addToStack = true;
-        this.errorStack.emptyErrors.concat(this.errorStack.validationErrors).forEach(function(err) {
+        this.errorStack.emptyErrors.concat(this.errorStack.validationErrors.concat(this.errorStack.emptyCheckboxes)).forEach(function(err) {
             if (error.message === err.message) {
                 addToStack = false;
             }
         });
         if (addToStack) {
-            if (error.type === E_EMPTY) {
-                this.errorStack.emptyErrors.push(error);
-            } else {
-                this.errorStack.validationErrors.push(error);
+            switch (error.type) {
+                case E_EMPTY: {
+                    this.errorStack.emptyErrors.push(error);
+                } break;
+                case E_EMPTY_CHECKBOX: {
+                    this.errorStack.emptyCheckboxes.push(error);
+                } break;
+                case E_VALIDATION: {
+                    this.errorStack.validationErrors.push(error);
+                } break;
+                default: {
+                    this.errorStack.emptyErrors.push(error);
+                }
             }
         }
     }
@@ -359,6 +374,7 @@ class AutoForm {
     clearErrors() {
         this.errorStack.emptyErrors = [];
         this.errorStack.validationErrors = [];
+        this.errorStack.emptyCheckboxes = [];
     }
 
     /**
@@ -489,9 +505,17 @@ class AutoForm {
                             }).join("")}
                         </div>
                      </div>
+                     <div class="empty-checkboxes-errors">
+                        <div class="title">Check the checkboxes:</div>
+                        <div class="error-list">
+                            ${self.errorStack.emptyCheckboxes.map(function (err) {
+                                return `<span class="error-message">${err.field.dataOpts.name || err.field.nodeLink.name}</span>`;
+                            }).join("")}
+                        </div>
+                     </div>
                     `;
             } else {
-                self.nodeLink.querySelector(`.${AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS}`).innerHTML = self.errorStack.emptyErrors.concat(self.errorStack.validationErrors).map(function (err) {
+                self.nodeLink.querySelector(`.${AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS}`).innerHTML = self.errorStack.emptyErrors.concat(self.errorStack.validationErrors.concat(self.errorStack.emptyCheckboxes)).map(function (err) {
                     return `<span class="error-message">${err.message}</span><br>`;
                 }).join("");
             }
