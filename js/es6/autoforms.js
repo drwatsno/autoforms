@@ -26,14 +26,19 @@ const AUTOFORM_KEYERROR_WRAP_CLASS = "autoforms_errors";
 const AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS = "autoforms_errors";
 const HTML5_INPUT_TYPES = ["text", "password", "checkbox", "radio", "number", "color", "date", "datetime", "datetime-local", "email", "range", "search", "tel", "time", "url", "month", "week"];
 
+const E_VALIDATION = 100;
+const E_EMPTY = 101;
+
 class ErrorMessage {
     constructor(field) {
         if (!field.empty) {
             this.message = field.autoFormLink.options.Validators[field.type].errorMessage + " " + (field.nodeLink.dataset.name || field.nodeLink.name);
+            this.type = E_VALIDATION;
         } else {
             this.message = `${field.nodeLink.dataset.name || field.nodeLink.name} is empty`;
+            this.type = E_EMPTY;
         }
-        this.nodeLink = field.nodeLink;
+        this.field = field;
     }
 }
 
@@ -182,7 +187,7 @@ class Field {
 }
 
 /**
- * AutoForm class constructor. Accepts html node as first argument (usually form element, but can be any of its parents to)
+ * AutoForm class constructor. Accepts html node as first argument (usually form element, but can be any of its parents too)
  * @param htmlElementNode
  * @param options
  * @constructor
@@ -192,7 +197,10 @@ class AutoForm {
     constructor(htmlElementNode, options) {
         let thisAutoForm = this;
 
-        this.errorStack = [];
+        this.errorStack = {
+            validationErrors: [],
+            emptyErrors: []
+        };
         this.options = {
             Validators: {
                 "text": {
@@ -281,6 +289,7 @@ class AutoForm {
                 }
             },
             ShowErrorMsg: options.ShowErrorMsg || false,
+            PrettyPrintErrors: options.PrettyPrintErrors || true,
             ErrorMsgContainer: options.ErrorMsgContainer || ".autoforms-errors",
             EnableAnimations: options.EnableAnimations || true,
             DeactivateSubmit: options.DeactivateSubmit || true,
@@ -322,6 +331,34 @@ class AutoForm {
                 subtree: true
             });
         }
+    }
+
+    /**
+     * Push error to error stack
+     * @param error
+     */
+    pushError(error) {
+        let addToStack = true;
+        this.errorStack.emptyErrors.concat(this.errorStack.validationErrors).forEach(function(err) {
+            if (error.message === err.message) {
+                addToStack = false;
+            }
+        });
+        if (addToStack) {
+            if (error.type === E_EMPTY) {
+                this.errorStack.emptyErrors.push(error);
+            } else {
+                this.errorStack.validationErrors.push(error);
+            }
+        }
+    }
+
+    /**
+     * Clear error stack
+     */
+    clearErrors() {
+        this.errorStack.emptyErrors = [];
+        this.errorStack.validationErrors = [];
     }
 
     /**
@@ -407,21 +444,12 @@ class AutoForm {
      */
     validate() {
         let self = this;
-        self.errorStack = [];
+        self.clearErrors();
         self.valid = true;
         for (let field of self.fields) {
             if (!field.validate()) {
                 self.valid = false;
-                let addToStack = true;
-                let errorMessage = new ErrorMessage(field);
-                self.errorStack.forEach(function(err) {
-                    if (errorMessage.message === err.message) {
-                        addToStack = false;
-                    }
-                });
-                if (addToStack) {
-                    self.errorStack.push(errorMessage);
-                }
+                self.pushError(new ErrorMessage(field));
             }
         }
         return self.valid;
@@ -443,9 +471,30 @@ class AutoForm {
             }
         }
         else {
-            self.nodeLink.querySelector(`.${AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS}`).innerHTML = self.errorStack.map(function (err) {
-                return `<span class="error-message">${err.message}</span><br>`;
-            }).join("");
+            if (self.options.PrettyPrintErrors) {
+                self.nodeLink.querySelector(`.${AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS}`).innerHTML =
+                    `<div class="empty-errors">
+                        <div class="title">The following fields is empty:</div>
+                        <div class="error-list">
+                            ${self.errorStack.emptyErrors.map(function (err) {
+                                return `<span class="error-message">${err.field.dataOpts.name || err.field.nodeLink.name }</span>`;
+                            }).join("")}
+                        </div>
+                     </div>
+                    <div class="validation-errors">
+                        <div class="title">Check the correctness of the fields:</div>
+                        <div class="error-list">
+                            ${self.errorStack.validationErrors.map(function (err) {
+                                return `<span class="error-message">${err.field.dataOpts.name || err.field.nodeLink.name}</span>`;
+                            }).join("")}
+                        </div>
+                     </div>
+                    `;
+            } else {
+                self.nodeLink.querySelector(`.${AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS}`).innerHTML = self.errorStack.emptyErrors.concat(self.errorStack.validationErrors).map(function (err) {
+                    return `<span class="error-message">${err.message}</span><br>`;
+                }).join("");
+            }
             if (self.options.FormInvalidClass) {
                 self.nodeLink.classList.add(AUTOFORM_FORM_INVALID_CLASS);
             }

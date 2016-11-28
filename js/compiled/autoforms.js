@@ -32,15 +32,20 @@ var AUTOFORM_KEYERROR_WRAP_CLASS = "autoforms_errors";
 var AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS = "autoforms_errors";
 var HTML5_INPUT_TYPES = ["text", "password", "checkbox", "radio", "number", "color", "date", "datetime", "datetime-local", "email", "range", "search", "tel", "time", "url", "month", "week"];
 
+var E_VALIDATION = 100;
+var E_EMPTY = 101;
+
 var ErrorMessage = function ErrorMessage(field) {
     _classCallCheck(this, ErrorMessage);
 
     if (!field.empty) {
         this.message = field.autoFormLink.options.Validators[field.type].errorMessage + " " + (field.nodeLink.dataset.name || field.nodeLink.name);
+        this.type = E_VALIDATION;
     } else {
         this.message = (field.nodeLink.dataset.name || field.nodeLink.name) + " is empty";
+        this.type = E_EMPTY;
     }
-    this.nodeLink = field.nodeLink;
+    this.field = field;
 };
 
 var Field = function () {
@@ -201,7 +206,7 @@ var Field = function () {
 }();
 
 /**
- * AutoForm class constructor. Accepts html node as first argument (usually form element, but can be any of its parents to)
+ * AutoForm class constructor. Accepts html node as first argument (usually form element, but can be any of its parents too)
  * @param htmlElementNode
  * @param options
  * @constructor
@@ -213,7 +218,10 @@ var AutoForm = function () {
 
         var thisAutoForm = this;
 
-        this.errorStack = [];
+        this.errorStack = {
+            validationErrors: [],
+            emptyErrors: []
+        };
         this.options = {
             Validators: {
                 "text": {
@@ -303,6 +311,7 @@ var AutoForm = function () {
                 }
             },
             ShowErrorMsg: options.ShowErrorMsg || false,
+            PrettyPrintErrors: options.PrettyPrintErrors || true,
             ErrorMsgContainer: options.ErrorMsgContainer || ".autoforms-errors",
             EnableAnimations: options.EnableAnimations || true,
             DeactivateSubmit: options.DeactivateSubmit || true,
@@ -347,11 +356,45 @@ var AutoForm = function () {
     }
 
     /**
-     * updates fields list in object (you can call this method to update fields if form changed)
+     * Push error to error stack
+     * @param error
      */
 
 
     _createClass(AutoForm, [{
+        key: "pushError",
+        value: function pushError(error) {
+            var addToStack = true;
+            this.errorStack.emptyErrors.concat(this.errorStack.validationErrors).forEach(function (err) {
+                if (error.message === err.message) {
+                    addToStack = false;
+                }
+            });
+            if (addToStack) {
+                if (error.type === E_EMPTY) {
+                    this.errorStack.emptyErrors.push(error);
+                } else {
+                    this.errorStack.validationErrors.push(error);
+                }
+            }
+        }
+
+        /**
+         * Clear error stack
+         */
+
+    }, {
+        key: "clearErrors",
+        value: function clearErrors() {
+            this.errorStack.emptyErrors = [];
+            this.errorStack.validationErrors = [];
+        }
+
+        /**
+         * updates fields list in object (you can call this method to update fields if form changed)
+         */
+
+    }, {
         key: "updateFields",
         value: function updateFields() {
             var thisAutoForm = this;
@@ -458,7 +501,7 @@ var AutoForm = function () {
         key: "validate",
         value: function validate() {
             var self = this;
-            self.errorStack = [];
+            self.clearErrors();
             self.valid = true;
             var _iteratorNormalCompletion2 = true;
             var _didIteratorError2 = false;
@@ -469,19 +512,8 @@ var AutoForm = function () {
                     var field = _step2.value;
 
                     if (!field.validate()) {
-                        (function () {
-                            self.valid = false;
-                            var addToStack = true;
-                            var errorMessage = new ErrorMessage(field);
-                            self.errorStack.forEach(function (err) {
-                                if (errorMessage.message === err.message) {
-                                    addToStack = false;
-                                }
-                            });
-                            if (addToStack) {
-                                self.errorStack.push(errorMessage);
-                            }
-                        })();
+                        self.valid = false;
+                        self.pushError(new ErrorMessage(field));
                     }
                 }
             } catch (err) {
@@ -520,9 +552,17 @@ var AutoForm = function () {
                     self.submit.removeAttribute("disabled");
                 }
             } else {
-                self.nodeLink.querySelector("." + AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS).innerHTML = self.errorStack.map(function (err) {
-                    return "<span class=\"error-message\">" + err.message + "</span><br>";
-                }).join("");
+                if (self.options.PrettyPrintErrors) {
+                    self.nodeLink.querySelector("." + AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS).innerHTML = "<div class=\"empty-errors\">\n                        <div class=\"title\">The following fields is empty:</div>\n                        <div class=\"error-list\">\n                            " + self.errorStack.emptyErrors.map(function (err) {
+                        return "<span class=\"error-message\">" + (err.field.dataOpts.name || err.field.nodeLink.name) + "</span>";
+                    }).join("") + "\n                        </div>\n                     </div>\n                    <div class=\"validation-errors\">\n                        <div class=\"title\">Check the correctness of the fields:</div>\n                        <div class=\"error-list\">\n                            " + self.errorStack.validationErrors.map(function (err) {
+                        return "<span class=\"error-message\">" + (err.field.dataOpts.name || err.field.nodeLink.name) + "</span>";
+                    }).join("") + "\n                        </div>\n                     </div>\n                    ";
+                } else {
+                    self.nodeLink.querySelector("." + AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS).innerHTML = self.errorStack.emptyErrors.concat(self.errorStack.validationErrors).map(function (err) {
+                        return "<span class=\"error-message\">" + err.message + "</span><br>";
+                    }).join("");
+                }
                 if (self.options.FormInvalidClass) {
                     self.nodeLink.classList.add(AUTOFORM_FORM_INVALID_CLASS);
                 }

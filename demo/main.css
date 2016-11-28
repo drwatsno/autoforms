@@ -21,7 +21,7 @@
   padding: 0.5rem;
   border-radius: 0.5rem;
   border: 0.05rem solid #888;
-  box-shadow: inset 0.1em 0.1em 0.1em 0em rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0.1em 0.1em 0.1em 0 rgba(0, 0, 0, 0.2);
   margin-bottom: 1em;
   transition: all 0.2s ease;
   outline: none;
@@ -49,7 +49,8 @@
   margin-bottom: 20px;
 }
 .autoforms_errors .error-message {
-  color: red;
+  color: #ff0000;
+  margin-right: 10px;
 }
 @media only screen and (max-width: 63em) and (orientation: portrait) {
   html {
