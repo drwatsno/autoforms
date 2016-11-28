@@ -573,13 +573,25 @@ var AutoForm = function () {
                 }
             } else {
                 if (self.options.PrettyPrintErrors) {
-                    self.nodeLink.querySelector("." + AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS).innerHTML = "<div class=\"empty-errors\">\n                        <div class=\"title\">The following fields is empty:</div>\n                        <div class=\"error-list\">\n                            " + self.errorStack.emptyErrors.map(function (err) {
-                        return "<span class=\"error-message\">" + (err.field.dataOpts.name || err.field.nodeLink.name) + "</span>";
-                    }).join("") + "\n                        </div>\n                     </div>\n                    <div class=\"validation-errors\">\n                        <div class=\"title\">Check the correctness of the fields:</div>\n                        <div class=\"error-list\">\n                            " + self.errorStack.validationErrors.map(function (err) {
-                        return "<span class=\"error-message\">" + (err.field.dataOpts.name || err.field.nodeLink.name) + "</span>";
-                    }).join("") + "\n                        </div>\n                     </div>\n                     <div class=\"empty-checkboxes-errors\">\n                        <div class=\"title\">Check the checkboxes:</div>\n                        <div class=\"error-list\">\n                            " + self.errorStack.emptyCheckboxes.map(function (err) {
-                        return "<span class=\"error-message\">" + (err.field.dataOpts.name || err.field.nodeLink.name) + "</span>";
-                    }).join("") + "\n                        </div>\n                     </div>\n                    ";
+                    self.nodeLink.querySelector("." + AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS).innerHTML = function () {
+                        if (self.errorStack.emptyErrors.length > 0) {
+                            return "<div class=\"empty-errors\">\n                                            <div class=\"title\">The following fields is empty:</div>\n                                            <div class=\"error-list\">\n                                                " + self.errorStack.emptyErrors.map(function (err) {
+                                return "<span class=\"error-message\">" + (err.field.dataOpts.name || err.field.nodeLink.name) + "</span>";
+                            }).join("") + "\n                                            </div>\n                                         </div>";
+                        } else return "";
+                    }() + "\n                    " + function () {
+                        if (self.errorStack.validationErrors.length > 0) {
+                            return "<div class=\"validation-errors\">\n                                        <div class=\"title\">Check the correctness of the fields:</div>\n                                        <div class=\"error-list\">\n                                            " + self.errorStack.validationErrors.map(function (err) {
+                                return "<span class=\"error-message\">" + (err.field.dataOpts.name || err.field.nodeLink.name) + "</span>";
+                            }).join("") + "\n                                        </div>\n                                     </div>";
+                        } else return "";
+                    }() + "\n                    " + function () {
+                        if (self.errorStack.emptyCheckboxes.length > 0) {
+                            return "<div class=\"empty-checkboxes-errors\">\n                                        <div class=\"title\">Check the checkboxes:</div>\n                                        <div class=\"error-list\">\n                                            " + self.errorStack.emptyCheckboxes.map(function (err) {
+                                return "<span class=\"error-message\">" + (err.field.dataOpts.name || err.field.nodeLink.name) + "</span>";
+                            }).join("") + "\n                                        </div>\n                                     </div>";
+                        } else return "";
+                    }();
                 } else {
                     self.nodeLink.querySelector("." + AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS).innerHTML = self.errorStack.emptyErrors.concat(self.errorStack.validationErrors.concat(self.errorStack.emptyCheckboxes)).map(function (err) {
                         return "<span class=\"error-message\">" + err.message + "</span><br>";

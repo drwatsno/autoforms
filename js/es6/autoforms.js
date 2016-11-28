@@ -321,7 +321,7 @@ class AutoForm {
                 mutations.forEach(function(mutation) {
                     if (mutation.type === "childList" && mutation.target.classList[0] !== "autoforms_errors") {
                         update = true;
-                        console.log(mutation);
+                        // console.log(mutation);
                     }
                 });
 
@@ -489,31 +489,48 @@ class AutoForm {
         else {
             if (self.options.PrettyPrintErrors) {
                 self.nodeLink.querySelector(`.${AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS}`).innerHTML =
-                    `<div class="empty-errors">
-                        <div class="title">The following fields is empty:</div>
-                        <div class="error-list">
-                            ${self.errorStack.emptyErrors.map(function (err) {
-                                return `<span class="error-message">${err.field.dataOpts.name || err.field.nodeLink.name }</span>`;
-                            }).join("")}
-                        </div>
-                     </div>
-                    <div class="validation-errors">
-                        <div class="title">Check the correctness of the fields:</div>
-                        <div class="error-list">
-                            ${self.errorStack.validationErrors.map(function (err) {
-                                return `<span class="error-message">${err.field.dataOpts.name || err.field.nodeLink.name}</span>`;
-                            }).join("")}
-                        </div>
-                     </div>
-                     <div class="empty-checkboxes-errors">
-                        <div class="title">Check the checkboxes:</div>
-                        <div class="error-list">
-                            ${self.errorStack.emptyCheckboxes.map(function (err) {
-                                return `<span class="error-message">${err.field.dataOpts.name || err.field.nodeLink.name}</span>`;
-                            }).join("")}
-                        </div>
-                     </div>
-                    `;
+                    `${(function () {
+                            if (self.errorStack.emptyErrors.length > 0) {
+                                return `<div class="empty-errors">
+                                            <div class="title">The following fields is empty:</div>
+                                            <div class="error-list">
+                                                ${self.errorStack.emptyErrors.map(function (err) {
+                                                        return `<span class="error-message">${err.field.dataOpts.name || err.field.nodeLink.name }</span>`;
+                                                    }).join("")}
+                                            </div>
+                                         </div>`;
+                            } else {
+                                return "";
+                            }
+                        })()}
+                    ${(function () {
+                        if (self.errorStack.validationErrors.length > 0) {
+                            return `<div class="validation-errors">
+                                        <div class="title">Check the correctness of the fields:</div>
+                                        <div class="error-list">
+                                            ${self.errorStack.validationErrors.map(function (err) {
+                                                return `<span class="error-message">${err.field.dataOpts.name || err.field.nodeLink.name}</span>`;
+                                            }).join("")}
+                                        </div>
+                                     </div>`;
+                        } else {
+                            return "";
+                        }
+                    })()}
+                    ${(function () {
+                        if (self.errorStack.emptyCheckboxes.length > 0) {
+                            return `<div class="empty-checkboxes-errors">
+                                        <div class="title">Check the checkboxes:</div>
+                                        <div class="error-list">
+                                            ${self.errorStack.emptyCheckboxes.map(function (err) {
+                                                return `<span class="error-message">${err.field.dataOpts.name || err.field.nodeLink.name}</span>`;
+                                            }).join("")}
+                                        </div>
+                                     </div>`;
+                        } else {
+                            return "";
+                        }
+                    })()}`;
             } else {
                 self.nodeLink.querySelector(`.${AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS}`).innerHTML = self.errorStack.emptyErrors.concat(self.errorStack.validationErrors.concat(self.errorStack.emptyCheckboxes)).map(function (err) {
                     return `<span class="error-message">${err.message}</span><br>`;
