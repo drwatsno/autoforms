@@ -23,7 +23,7 @@ const AUTOFORM_SUBMIT_INVALID_CLASS = "autoform-submit-invalid";
 const AUTOFORM_HOVERED_ONCE = "autoform-submit-hovered-once";
 const AUTOFORM_KEYERROR_WRAP_CLASS = "autoforms_errors";
 const AUTOFORM_VALIDATE_ERRORS_WRAP_CLASS = "autoforms_errors";
-const HTML5_INPUT_TYPES = ["text", "password", "checkbox", "radio", "number", "color", "date", "datetime", "datetime-local", "email", "range", "search", "tel", "time", "url", "month", "week"];
+const HTML5_INPUT_TYPES = ["text", "password", "checkbox", "radio", "number", "color", "date", "datetime", "datetime-local", "email", "range", "search", "tel", "time", "url", "month", "week", "file"];
 
 const E_VALIDATION = 100;
 const E_EMPTY = 101;
@@ -251,6 +251,13 @@ class AutoForm {
                         return typeof field.dataOpts.required !== "undefined";
                     },
                     "keypressValidatorFunction": false
+                },
+                "file": {
+                    "keys": "",
+                    "errorMessage": "Please select file",
+                    "validatorFunction": function (field) {
+                        return !!field.nodeLink.value;
+                    }
                 },
                 "number": {
                     "keys": "0123456789",
